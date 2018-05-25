@@ -5,7 +5,6 @@ in addition to setting up the logger appropriately.
 """
 
 from __future__ import absolute_import
-import os
 import logging
 
 # Enable logging, this will also direct built-in DXL log messages.
