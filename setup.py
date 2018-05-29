@@ -12,6 +12,8 @@ CWD = os.path.abspath(os.path.dirname(__file__))
 with open(os.path.join(CWD, "dxldbconsumerclient", "_version.py")) as f:
     exec(f.read(), VERSION_INFO)
 
+TEST_REQUIREMENTS = ["nose"]
+
 DEV_REQUIREMENTS = ["flask"]
 
 setup(
@@ -28,9 +30,13 @@ setup(
         "retrying"
     ],
 
+    tests_require=TEST_REQUIREMENTS,
+
     extras_require={
         "dev": DEV_REQUIREMENTS
     },
+
+    test_suite="nose.collector",
 
     # Python version requirements
     python_requires=">=2.7.9,!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*",
