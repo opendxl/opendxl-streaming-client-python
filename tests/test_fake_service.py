@@ -10,7 +10,6 @@ BASE_CHANNEL_URL = "http://localhost"
 
 
 class Test(unittest.TestCase):
-
     def test_service(self):
         with fake_consumer_service.ConsumerService(0) as service:
             channel_url = furl(BASE_CHANNEL_URL).set(port=service.port)
@@ -24,7 +23,8 @@ class Test(unittest.TestCase):
             channel.subscribe()
 
             expected_records = \
-                [json.loads(base64.b64decode(record['message']['payload']))
+                [json.loads(base64.b64decode(
+                    record['message']['payload']).decode())
                  for record in fake_consumer_service.DEFAULT_RECORDS]
             records_consumed = channel.consume()
             self.assertEqual(expected_records, records_consumed)

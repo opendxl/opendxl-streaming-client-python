@@ -27,8 +27,8 @@ DEFAULT_LOG_LEVEL = logging.INFO
 
 AUTH_USER = "me"
 AUTH_PASSWORD = "secret"
-AUTH_USER_HEADER = "Basic {}".format(
-    base64.b64encode("{}:{}".format(AUTH_USER, AUTH_PASSWORD)))
+AUTH_USER_HEADER = "Basic {}".format(base64.b64encode(
+    "{}:{}".format(AUTH_USER, AUTH_PASSWORD).encode()).decode())
 
 AUTH_TOKEN = "AnAuthorizationToken"
 AUTH_TOKEN_HEADER = "Bearer {}".format(AUTH_TOKEN)
@@ -147,8 +147,7 @@ def wrapped_consumer_service_handler(consumer_service):
                 self.send_header(header_name, header_value)
             self.end_headers()
             if body:
-                self.wfile.write(body)
-                self.wfile.close()
+                self.wfile.write(body.encode())
 
         def _handle_request(self, routes):
             matched = False
@@ -221,7 +220,7 @@ class ConsumerService(object):
 def _user_auth(f):
     @wraps(f)
     def decorated(handler, *args, **kwargs):
-        if handler.headers.getheader("Authorization") == AUTH_USER_HEADER:
+        if handler.headers.get("Authorization") == AUTH_USER_HEADER:
             kwargs['handler'] = handler
             response = f(*args, **kwargs)
         else:
@@ -233,7 +232,7 @@ def _user_auth(f):
 def _token_auth(f):
     @wraps(f)
     def decorated(handler, *args, **kwargs):
-        if handler.headers.getheader("Authorization") == AUTH_TOKEN_HEADER:
+        if handler.headers.get("Authorization") == AUTH_TOKEN_HEADER:
             kwargs['handler'] = handler
             response = f(*args, **kwargs)
         else:
@@ -246,7 +245,7 @@ def _json_body(f):
     @wraps(f)
     def decorated(handler, *args, **kwargs):
         kwargs['body'] = json.loads(
-            handler.rfile.read(int(handler.headers['Content-Length'])))
+            handler.rfile.read(int(handler.headers['Content-Length'])).decode())
         kwargs['handler'] = handler
         return f(*args, **kwargs)
     return decorated
@@ -266,7 +265,7 @@ def _consumer_auth(f):
                     consumer_instance_id)
             if not consumer_cookie:
                 response = 404, "Unknown consumer"
-            elif handler.headers.getheader(
+            elif handler.headers.get(
                     "Cookie") != "{}={}".format(COOKIE_NAME, consumer_cookie):
                 response = 403, "Invalid cookie"
             else:
