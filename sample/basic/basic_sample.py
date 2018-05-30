@@ -1,6 +1,7 @@
 from __future__ import absolute_import
 import json
 import os
+import signal
 import sys
 import time
 
@@ -18,11 +19,16 @@ from common import *
 logging.getLogger().setLevel(logging.INFO)
 logger = logging.getLogger(__name__)
 
-CHANNEL_URL = "http://127.0.0.1:5000"
+CHANNEL_URL = "http://127.0.0.1:50000"
 CHANNEL_USERNAME = "me"
 CHANNEL_PASSWORD = "secret"
 CHANNEL_CONSUMER_GROUP = "mcafee_investigator_events"
 WAIT_BETWEEN_QUERIES = 5
+
+def signal_handler(*_):
+    globals.interrupted = True
+
+signal.signal(signal.SIGINT, signal_handler)
 
 channel = Channel(CHANNEL_URL,
                   auth=ChannelAuth(CHANNEL_URL,

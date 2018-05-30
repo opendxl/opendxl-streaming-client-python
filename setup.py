@@ -14,8 +14,6 @@ with open(os.path.join(CWD, "dxldbconsumerclient", "_version.py")) as f:
 
 TEST_REQUIREMENTS = ["nose"]
 
-DEV_REQUIREMENTS = ["flask"]
-
 setup(
     # Package name:
     name="dxldbconsumerclient",
@@ -33,7 +31,7 @@ setup(
     tests_require=TEST_REQUIREMENTS,
 
     extras_require={
-        "dev": DEV_REQUIREMENTS
+        "test": TEST_REQUIREMENTS
     },
 
     test_suite="nose.collector",
