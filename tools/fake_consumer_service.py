@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from __future__ import absolute_import
 import base64
 from functools import wraps
 import json
@@ -7,11 +8,12 @@ import re
 import random
 import signal
 import string
-from SimpleHTTPServer import SimpleHTTPRequestHandler
-import SocketServer
+from six.moves.SimpleHTTPServer import SimpleHTTPRequestHandler
+import six.moves.socketserver
 import sys
 import threading
 import logging
+from six.moves import range
 
 DEFAULT_PORT = 50000
 DEFAULT_LOG_LEVEL = logging.INFO
@@ -187,7 +189,7 @@ class ConsumerService(object):
             if not self._started:
                 self._started = True
                 log.info("Starting service")
-                self._server = SocketServer.TCPServer(
+                self._server = six.moves.socketserver.TCPServer(
                     ('', self.port), wrapped_consumer_service_handler(self))
                 server_address = self._server.server_address
                 self.port = server_address[1]
