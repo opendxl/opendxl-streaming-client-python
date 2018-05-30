@@ -65,8 +65,8 @@ DEFAULT_RECORDS = [
                     {
                         "id": "9ab2cebb-6b5f-418b-a15f-df1a9ee213f2",
                         "name": "A great case full of malware",
-                        "url": "https://ui-int-cop.soc.mcafee.com/#/cases/9ab2cebb-6b5f-418b-a15f-df1a9ee213f2",
-
+                        "url": "https://mycaseserver.com/#/cases/"
+                               "9ab2cebb-6b5f-418b-a15f-df1a9ee213f2",
                         "priority": "Low"
                     }
             })
@@ -98,8 +98,8 @@ DEFAULT_RECORDS = [
                     {
                         "id": "9ab2cebb-6b5f-418b-a15f-df1a9ee213f2",
                         "name": "A great case full of malware",
-                        "url": "https://ui-int-cop.soc.mcafee.com/#/cases/9ab2cebb-6b5f-418b-a15f-df1a9ee213f2",
-
+                        "url": "https://mycaseserver.com/#/cases"
+                               "/9ab2cebb-6b5f-418b-a15f-df1a9ee213f2",
                         "priority": "Low"
                     }
             })
@@ -109,9 +109,10 @@ DEFAULT_RECORDS = [
     }
 ]
 
-log = logging.getLogger(__name__)
+LOG = logging.getLogger(__name__)
 
-def wrapped_consumer_service_handler(consumer_service):
+
+def consumer_service_handler(consumer_service):
     class ConsumerServiceHandler(SimpleHTTPRequestHandler):
         def __init__(self, request, client_address, server):
             self._consumer_service = consumer_service
@@ -165,10 +166,10 @@ def wrapped_consumer_service_handler(consumer_service):
         def do_GET(self):
             self._handle_request(self._get_routes)
 
-        def do_POST(self):
+        def do_POST(self): # pylint: disable=invalid-name
             self._handle_request(self._post_routes)
 
-        def do_DELETE(self):
+        def do_DELETE(self): # pylint: disable=invalid-name
             self._handle_request(self._delete_routes)
 
     return ConsumerServiceHandler
@@ -177,11 +178,13 @@ def wrapped_consumer_service_handler(consumer_service):
 class ConsumerService(object):
     def __init__(self, port=DEFAULT_PORT):
         self.port = port
-        self._lock = threading.Lock()
         self._active_consumers = {}
         self._active_records = list(DEFAULT_RECORDS)
-        self._subscribed_topics = set()
+        self._lock = threading.Lock()
+        self._server = None
+        self._server_thread = None
         self._started = False
+        self._subscribed_topics = set()
 
     def __enter__(self):
         self.start()
@@ -194,12 +197,12 @@ class ConsumerService(object):
         with self._lock:
             if not self._started:
                 self._started = True
-                log.info("Starting service")
+                LOG.info("Starting service")
                 self._server = TCPServer(
-                    ('', self.port), wrapped_consumer_service_handler(self))
+                    ('', self.port), consumer_service_handler(self))
                 server_address = self._server.server_address
                 self.port = server_address[1]
-                log.info("Started service on %s:%s",
+                LOG.info("Started service on %s:%s",
                          str(server_address[0]), self.port)
                 self._server_thread = threading.Thread(
                     target=self._server.serve_forever)
@@ -207,14 +210,14 @@ class ConsumerService(object):
 
     def stop(self):
         with self._lock:
-            log.info("Stopping service...")
+            LOG.info("Stopping service...")
             if self._started:
                 if self._server:
                     self._server.shutdown()
                     if self._server_thread:
                         self._server_thread.join()
                 self._started = False
-            log.info("Service stopped")
+            LOG.info("Service stopped")
 
 
 def _user_auth(f):
@@ -278,7 +281,7 @@ def _consumer_auth(f):
 
 
 @_user_auth
-def _login(*args, **kwargs):
+def _login(*args, **kwargs): # pylint: disable=unused-argument
     return 200, {"AuthorizationToken": AUTH_TOKEN}
 
 
@@ -288,7 +291,7 @@ def random_val():
 
 @_consumer_auth
 @_token_auth
-def _delete_consumer(consumer_instance_id, consumer_service, **kwargs):
+def _delete_consumer(consumer_instance_id, consumer_service, **kwargs): # pylint: disable=unused-argument
     status_code = 204 \
         if consumer_service._active_consumers.pop(consumer_instance_id, None) \
         else 404
@@ -297,7 +300,7 @@ def _delete_consumer(consumer_instance_id, consumer_service, **kwargs):
 
 @_token_auth
 @_json_body
-def _create_consumer(body, consumer_service, **kwargs):
+def _create_consumer(body, consumer_service, **kwargs): # pylint: disable=unused-argument
     if body.get("consumerGroup") == CONSUMER_GROUP:
         consumer_id = random_val()
         cookie_value = random_val()
@@ -313,16 +316,17 @@ def _create_consumer(body, consumer_service, **kwargs):
 @_consumer_auth
 @_token_auth
 @_json_body
-def _create_subscription(body, consumer_service, **kwargs):
+def _create_subscription(body, consumer_service, **kwargs): # pylint: disable=unused-argument
     topics = body.get("topics")
     if topics:
         with consumer_service._lock:
-            [consumer_service._subscribed_topics.add(topic) for topic in topics]
+            for topic in topics:
+                consumer_service._subscribed_topics.add(topic)
     return 204, ""
 
 @_consumer_auth
 @_token_auth
-def _get_records(consumer_service, **kwargs):
+def _get_records(consumer_service, **kwargs): # pylint: disable=unused-argument
     with consumer_service._lock:
         subscribed_records = \
             [record for record in consumer_service._active_records \
@@ -343,7 +347,7 @@ def record_in_offsets(record, offsets):
 @_consumer_auth
 @_token_auth
 @_json_body
-def _commit_offsets(body, consumer_service, **kwargs):
+def _commit_offsets(body, consumer_service, **kwargs): # pylint: disable=unused-argument
     committed_offsets = body.get("offsets")
     with consumer_service._lock:
         consumer_service._active_records[:] = \
@@ -352,7 +356,7 @@ def _commit_offsets(body, consumer_service, **kwargs):
     return 204, ""
 
 
-def _reset_records(consumer_service, **kwargs):
+def _reset_records(consumer_service, **kwargs): # pylint: disable=unused-argument
     with consumer_service._lock:
         consumer_service._active_records = list(DEFAULT_RECORDS)
     return 200, ""
@@ -360,24 +364,24 @@ def _reset_records(consumer_service, **kwargs):
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
-    port = DEFAULT_PORT
+    PORT = DEFAULT_PORT
     if len(sys.argv) > 1:
         try:
-            port = int(sys.argv[1])
+            PORT = int(sys.argv[1])
         except ValueError:
             sys.exit("Numeric value not specified for port")
 
-    running = [True]
-    run_condition = threading.Condition()
+    RUNNING = [True]
+    RUN_CONDITION = threading.Condition()
 
     def signal_handler(*_):
-        with run_condition:
-            running[0] = False
-            run_condition.notify_all()
+        with RUN_CONDITION:
+            RUNNING[0] = False
+            RUN_CONDITION.notify_all()
 
-    with ConsumerService(port):
+    with ConsumerService(PORT):
         signal.signal(signal.SIGTERM, signal_handler)
         signal.signal(signal.SIGINT, signal_handler)
-        with run_condition:
-            while running[0]:
-                run_condition.wait(5)
+        with RUN_CONDITION:
+            while RUNNING[0]:
+                RUN_CONDITION.wait(5)

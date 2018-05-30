@@ -6,7 +6,7 @@ from mock import patch, MagicMock
 from dxldbconsumerclient.channel import (retry_if_not_consumer_error,
                                          ConsumerError, Channel, ChannelAuth)
 from dxldbconsumerclient.error import TemporaryError
-from dxldbconsumerclient import globals
+from dxldbconsumerclient import globals # pylint: disable=redefined-builtin
 
 
 class Test(unittest.TestCase):
@@ -27,11 +27,11 @@ class Test(unittest.TestCase):
         auth = ChannelAuth(self.url, self.username, self.password)
         req = MagicMock()
         req.headers = {}
-        with patch('requests.get') as r:
-            r.return_value = MagicMock()
-            r.return_value.status_code = 200
+        with patch('requests.get') as req_get:
+            req_get.return_value = MagicMock()
+            req_get.return_value.status_code = 200
             token = "1234567890"
-            r.return_value.json = MagicMock(
+            req_get.return_value.json = MagicMock(
                 return_value={'AuthorizationToken': token})
 
             req = auth(req)
@@ -47,8 +47,8 @@ class Test(unittest.TestCase):
                 channel = Channel(self.url,
                                   auth=auth,
                                   consumer_group=self.consumer_group)
-                channel._Channel__hook(res)
-                channel.request.send.assert_called_with(res.request)
+                channel._Channel__hook(res) # pylint: disable=no-member
+                channel.request.send.assert_called_with(res.request) # pylint: disable=no-member
 
     def test_main(self):
         globals.interrupted = True  # force disabling of retry mechanism
@@ -68,8 +68,8 @@ class Test(unittest.TestCase):
             {
                 "id": "c00547df-6d74-4833-95ad-3a377c7274a6",
                 "name": "A great case full of malware",
-                "url": "https://ui-int-cop.soc.mcafee.com/#/cases"
-                      "/4e8e23f4-9fe9-4215-92c9-12c9672be9f1",
+                "url": "https://mycaseserver.com/#/cases"
+                       "/4e8e23f4-9fe9-4215-92c9-12c9672be9f1",
                 "priority": "Low"
             }
         }

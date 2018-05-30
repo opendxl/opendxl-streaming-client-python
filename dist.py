@@ -4,6 +4,8 @@ import os
 import subprocess
 from tempfile import mkstemp
 from shutil import move
+
+# pylint: disable=no-name-in-module, import-error
 from distutils.dir_util import copy_tree, remove_tree
 from distutils.file_util import copy_file, move_file
 from distutils.core import run_setup
@@ -11,7 +13,7 @@ from distutils.archive_util import make_archive
 
 
 # Run clean
-import clean
+import clean # pylint: disable=unused-import
 
 def replace(file_path, pattern, subst):
     # Create temp file

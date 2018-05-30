@@ -1,4 +1,4 @@
 """This module maintains state about the application
 """
 
-interrupted = False
+interrupted = False # pylint: disable=invalid-name
