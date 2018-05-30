@@ -3,16 +3,19 @@ from functools import wraps
 import json
 import random
 import string
+import threading
 from flask import Flask, jsonify, make_response, request
-
-def encode_payload(obj):
-    return base64.b64encode(json.dumps(obj).encode()).decode()
 
 AUTH_USER = "me"
 AUTH_PASSWORD = "secret"
 AUTH_TOKEN = "AnAuthorizationToken"
 COOKIE_NAME = "AWSALB"
 CONSUMER_GROUP = "mcafee_investigator_events"
+
+
+def encode_payload(obj):
+    return base64.b64encode(json.dumps(obj).encode()).decode()
+
 
 DEFAULT_RECORDS = [
     {
@@ -82,6 +85,7 @@ DEFAULT_RECORDS = [
     }
 ]
 
+lock = threading.Lock()
 active_consumers = {}
 active_records = list(DEFAULT_RECORDS)
 subscribed_topics = set()
@@ -123,7 +127,8 @@ def consumer_auth(f):
         if not consumer_instance_id:
             response = make_response('Consumer not specified', 400)
         else:
-            consumer_cookie = active_consumers.get(consumer_instance_id)
+            with lock:
+                consumer_cookie = active_consumers.get(consumer_instance_id)
             if not consumer_cookie:
                 response = make_response('Unknown consumer', 404)
             elif request.cookies.get(COOKIE_NAME) != consumer_cookie:
@@ -156,11 +161,15 @@ def delete_consumer(consumer_instance_id):
 @app.route('/databus/consumer-service/v1/consumers', methods=['POST'])
 @token_auth
 def create_consumer():
-    consumer_id = random_val()
-    cookie_value = random_val()
-    active_consumers[consumer_id] = cookie_value
-    response = jsonify({"consumerInstanceId": consumer_id})
-    response.set_cookie(COOKIE_NAME, cookie_value)
+    if request.json.get('consumerGroup', None) == CONSUMER_GROUP:
+        consumer_id = random_val()
+        cookie_value = random_val()
+        with lock:
+            active_consumers[consumer_id] = cookie_value
+        response = jsonify({"consumerInstanceId": consumer_id})
+        response.set_cookie(COOKIE_NAME, cookie_value)
+    else:
+        response = make_response('Unknown consumer group', 400)
     return response
 
 
@@ -172,7 +181,8 @@ def create_consumer():
 def subscription(consumer_instance_id):
     topics = request.json.get("topics")
     if topics:
-        [subscribed_topics.add(topic) for topic in topics]
+        with lock:
+            [subscribed_topics.add(topic) for topic in topics]
     return "", 204
 
 
@@ -182,10 +192,11 @@ def subscription(consumer_instance_id):
 @consumer_auth
 @token_auth
 def records(consumer_instance_id):
-    return jsonify(
-        {"records": [record for record in active_records \
-                     if record["routingData"]["topic"] in subscribed_topics]}
-    )
+    with lock:
+        subscribed_records = \
+            [record for record in active_records \
+             if record["routingData"]["topic"] in subscribed_topics]
+    return jsonify({"records": subscribed_records})
 
 
 def record_matches_offset(record, offset):
@@ -205,13 +216,32 @@ def record_in_offsets(record, offsets):
 @token_auth
 def offsets(consumer_instance_id):
     committed_offsets = request.json["offsets"]
-    active_records[:] = [record for record in active_records \
-                           if not record_in_offsets(record, committed_offsets)]
+    with lock:
+        active_records[:] = \
+            [record for record in active_records
+             if not record_in_offsets(record, committed_offsets)]
     return "", 204
+
+
+@app.route('/active-consumers')
+def status():
+    with lock:
+        response = jsonify(active_consumers)
+    return response, 200
 
 
 @app.route('/reset-records')
 def reset_records():
     global active_records
-    active_records = list(DEFAULT_RECORDS)
+    with lock:
+        active_records = list(DEFAULT_RECORDS)
     return "", 200
+
+
+@app.route('/shutdown', methods=['POST'])
+def shutdown():
+    func = request.environ.get('werkzeug.server.shutdown')
+    if func is None:
+        raise RuntimeError("Not running with the Werkzeug Server")
+    func()
+    return "Shutting down", 200
