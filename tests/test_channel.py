@@ -74,7 +74,7 @@ class Test(unittest.TestCase):
             }
         }
 
-        encoded_event = base64.b64encode(json.dumps(case_event))
+        encoded_event = base64.b64encode(json.dumps(case_event).encode())
 
         with patch('requests.Session') as session:
             session.return_value = MagicMock()  # self.request

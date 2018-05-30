@@ -173,7 +173,7 @@ class Channel(object):
                         'offset': record['offset']
                     })
                     payloads.append(json.loads(base64.b64decode(
-                        record['message']['payload'])))
+                        record['message']['payload']).decode()))
                 self.records_commit_log.extend(commit_log)
                 return payloads
             except Exception as exp:
