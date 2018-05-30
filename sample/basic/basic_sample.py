@@ -54,11 +54,10 @@ while not globals.interrupted:
             logger.error("Resetting consumer loop: %s", exp)
             consumer_error = True
 
-logger.info("Unsubscribing and deleting consumer")
+logger.info("Deleting consumer")
 try:
-    channel.unsubscribe()
     channel.delete()
 except Exception as exp:
     logger.warning(
-        "Error while attempting to unsubscribe and stop "
-        "consumer with ID '%s': %s", channel.consumer_id, exp)
+        "Error while attempting to stop consumer with ID '%s': %s",
+        channel.consumer_id, exp)

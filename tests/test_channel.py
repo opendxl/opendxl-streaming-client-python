@@ -143,8 +143,6 @@ class Test(unittest.TestCase):
 
             channel.commit()
 
-        channel.unsubscribe()  # currently noop
-
         with self.assertRaises(TemporaryError):
             channel.delete()  # trigger 500
             session.return_value.delete.assert_called_with(

@@ -215,9 +215,6 @@ class Channel(object):
                 "Unexpected temporary error {}: {}".format(
                     res.status_code, res.text))
 
-    def unsubscribe(self):
-        pass
-
     def delete(self):
         """Deletes the consumer from the consumer group
         """
