@@ -1,5 +1,5 @@
 """
-Classes for the different exceptions that the dxldbconsumerclient APIs can raise.
+Classes for the different exceptions that the dxlstreamingconsumerclient APIs can raise.
 """
 
 class TemporaryError(Exception):

@@ -2,8 +2,8 @@ from __future__ import absolute_import
 import unittest
 from mock import patch, MagicMock
 from requests.exceptions import RequestException
-from dxldbconsumerclient.auth import (login, PermanentAuthenticationError,
-                                      TemporaryAuthenticationError)
+from dxlstreamingconsumerclient.auth import \
+    (login, PermanentAuthenticationError, TemporaryAuthenticationError)
 
 
 class Test(unittest.TestCase):

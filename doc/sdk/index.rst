@@ -1,5 +1,5 @@
-OpenDXL Databus Consumer Client
-===============================
+OpenDXL Streaming Consumer Client
+=================================
 
 Introduction
 ------------
@@ -37,5 +37,5 @@ Python API
 .. toctree::
     :titlesonly:
 
-    dxldbconsumerclient
+    dxlstreamingconsumerclient
 

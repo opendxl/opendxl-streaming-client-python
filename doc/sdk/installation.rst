@@ -13,15 +13,15 @@ Use ``pip`` to automatically install the library:
 
     .. parsed-literal::
 
-        pip install dxldbconsumerclient-\ |version|\-py2.py3-none-any.whl
+        pip install dxlstreamingconsumerclient-\ |version|\-py2.py3-none-any.whl
 
 Or with:
 
     .. parsed-literal::
 
-        pip install dxldbconsumerclient-\ |version|\.zip
+        pip install dxlstreamingconsumerclient-\ |version|\.zip
 
-As an alternative (without PIP), unpack the dxldbconsumerclient-\ |version|\.zip (located in the lib folder) and run the setup
+As an alternative (without PIP), unpack the dxlstreamingconsumerclient-\ |version|\.zip (located in the lib folder) and run the setup
 script:
 
     .. parsed-literal::

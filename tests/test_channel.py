@@ -3,10 +3,10 @@ import unittest
 import base64
 import json
 from mock import patch, MagicMock
-from dxldbconsumerclient.channel import (retry_if_not_consumer_error,
-                                         ConsumerError, Channel, ChannelAuth)
-from dxldbconsumerclient.error import TemporaryError
-from dxldbconsumerclient import globals # pylint: disable=redefined-builtin
+from dxlstreamingconsumerclient.channel import \
+    (retry_if_not_consumer_error, ConsumerError, Channel, ChannelAuth)
+from dxlstreamingconsumerclient.error import TemporaryError
+from dxlstreamingconsumerclient import globals # pylint: disable=redefined-builtin
 
 
 class Test(unittest.TestCase):

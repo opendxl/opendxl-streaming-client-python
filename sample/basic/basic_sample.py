@@ -5,8 +5,8 @@ import signal
 import sys
 import time
 
-from dxldbconsumerclient.channel import Channel, ChannelAuth, ConsumerError
-from dxldbconsumerclient import globals
+from dxlstreamingconsumerclient.channel import Channel, ChannelAuth, ConsumerError
+from dxlstreamingconsumerclient import globals
 
 root_dir = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(root_dir + "/../..")

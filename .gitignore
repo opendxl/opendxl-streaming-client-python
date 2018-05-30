@@ -2,4 +2,4 @@ MANIFEST
 dist/
 *.pyc
 build/
-dxldbconsumerclient.egg-info/
+dxlstreamingconsumerclient.egg-info/

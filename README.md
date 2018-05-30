@@ -1,4 +1,4 @@
-# OpenDXL Databus Consumer Client
+# OpenDXL Streaming Consumer Client
 
 ## Overview
 
