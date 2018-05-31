@@ -216,9 +216,8 @@ class Channel(object):
         if not self.subscribed:
             raise PermanentError("Channel is not subscribed to any topic")
 
-        url = furl(self.base).add(
-            path="/databus/consumer-service/v1/consumers/{}/records".format(
-                self.consumer_id)).url
+        url = furl(self.base).add(path=self.path_prefix).add(
+            path="consumers/{}/records".format(self.consumer_id)).url
 
         res = self.request.get(url)
 
