@@ -26,6 +26,7 @@ DEFAULT_PORT = 50000
 DEFAULT_LOG_LEVEL = logging.INFO
 RUN_CHECK_WAIT = 5
 MAX_SHUTDOWN_WAIT = 10
+PATH_PREFIX = "/databus/consumer-service/v1"
 
 AUTH_USER = "me"
 AUTH_PASSWORD = "secret"
@@ -120,19 +121,19 @@ def consumer_service_handler(consumer_service):
             self._consumer_service = consumer_service
             self._get_routes = {
                 "^/identity/v1/login$": _login,
-                "^/databus/consumer-service/v1/consumers/[^/]+/records$":
+                "^{}/consumers/[^/]+/records$".format(PATH_PREFIX):
                     _get_records
             }
             self._post_routes = {
-                "^/databus/consumer-service/v1/consumers$": _create_consumer,
-                "^/databus/consumer-service/v1/consumers/[^/]+/subscription$":
+                "^{}/consumers$".format(PATH_PREFIX): _create_consumer,
+                "^{}/consumers/[^/]+/subscription$".format(PATH_PREFIX):
                     _create_subscription,
-                "^/databus/consumer-service/v1/consumers/[^/]+/offsets$":
+                "^{}/consumers/[^/]+/offsets$".format(PATH_PREFIX):
                     _commit_offsets,
                 "^/reset-records$": _reset_records
             }
             self._delete_routes = {
-                "^/databus/consumer-service/v1/consumers/[^/]+$":
+                "^{}/consumers/[^/]+$".format(PATH_PREFIX):
                     _delete_consumer
             }
             SimpleHTTPRequestHandler.__init__(self, request, client_address,
