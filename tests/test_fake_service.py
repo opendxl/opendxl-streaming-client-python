@@ -4,7 +4,7 @@ import json
 import unittest
 from furl import furl
 from dxlstreamingconsumerclient.channel import (Channel, ChannelAuth)
-from tools import fake_consumer_service
+from sample import fake_consumer_service
 
 BASE_CHANNEL_URL = "http://localhost"
 
