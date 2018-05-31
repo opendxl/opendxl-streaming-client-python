@@ -24,6 +24,8 @@ except ImportError:
 
 DEFAULT_PORT = 50000
 DEFAULT_LOG_LEVEL = logging.INFO
+RUN_CHECK_WAIT = 5
+MAX_SHUTDOWN_WAIT = 10
 
 AUTH_USER = "me"
 AUTH_PASSWORD = "secret"
@@ -215,7 +217,7 @@ class ConsumerService(object):
                 if self._server:
                     self._server.shutdown()
                     if self._server_thread:
-                        self._server_thread.join()
+                        self._server_thread.join(MAX_SHUTDOWN_WAIT)
                 self._started = False
             LOG.info("Service stopped")
 
@@ -384,4 +386,4 @@ if __name__ == "__main__":
         signal.signal(signal.SIGINT, signal_handler)
         with RUN_CONDITION:
             while RUNNING[0]:
-                RUN_CONDITION.wait(5)
+                RUN_CONDITION.wait(RUN_CHECK_WAIT)
