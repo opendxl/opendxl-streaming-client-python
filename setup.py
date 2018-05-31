@@ -91,13 +91,13 @@ setup(
     python_requires=">=2.7.9,!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*",
 
     # Package author details:
-    author="",
+    author="McAfee LLC",
 
     # License
-    license="",
+    license="Apache License 2.0",
 
     # Keywords
-    keywords=[],
+    keywords=['opendxl', 'dxl', 'mcafee', 'client', 'streaming'],
 
     # Packages
     packages=[
@@ -109,13 +109,16 @@ setup(
         "dxlstreamingconsumerclient._config.sample" : ['*']},
 
     # Details
-    url="",
+    url="http://www.mcafee.com",
 
-    description="",
+    description="OpenDXL Streaming Consumer client library",
 
     long_description=open('README').read(),
 
     classifiers=[
+        "Development Status :: 4 - Beta",
+        "Topic :: Software Development :: Libraries :: Python Modules",
+        "License :: OSI Approved :: Apache Software License",
         "Programming Language :: Python",
         "Programming Language :: Python :: 2",
         "Programming Language :: Python :: 2.7",

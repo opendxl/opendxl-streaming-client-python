@@ -1,5 +1,5 @@
-OpenDXL Streaming Consumer Client
-=================================
+OpenDXL Streaming Consumer Client Library
+=========================================
 
 Introduction
 ------------

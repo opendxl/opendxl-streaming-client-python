@@ -30,7 +30,7 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = "OpenDXL Streaming Consumer Client"
+project = "OpenDXL Streaming Consumer Client Library"
 copyright = "2018, McAfee LLC"
 
 # The version info for the project you're documenting, acts as replacement for
