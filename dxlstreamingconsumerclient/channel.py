@@ -199,6 +199,10 @@ class Channel(object):
     def create(self):
         """
         Creates a new consumer on the consumer group
+
+        :raise TemporaryError: if the creation attempt fails and
+            :attr:`retry_on_fail` is set to False.
+        :raise PermanentError: if the channel has been destroyed.
         """
         self.reset()
 
@@ -229,6 +233,12 @@ class Channel(object):
         :param topics: Topic list. Defaults to "case-mgmt-events" and
             "BusinessEvents" if not specified.
         :type topics: list(str)
+        :raise ConsumerError: if the consumer associated with the channel
+            does not exist on the server and :attr:`retry_on_fail` is set
+            to False.
+        :raise TemporaryError: if the subscription attempt fails and
+            :attr:`retry_on_fail` is set to False.
+        :raise PermanentError: if the channel has been destroyed.
         """
         topics = topics or ["case-mgmt-events", "BusinessEvents"]
 
@@ -256,6 +266,14 @@ class Channel(object):
     def consume(self):
         """
         Consumes records from all the subscribed topics
+
+        :raise ConsumerError: if the consumer associated with the channel
+            does not exist on the server and :attr:`retry_on_fail` is set
+            to False.
+        :raise TemporaryError: if the consume attempt fails and
+            :attr:`retry_on_fail` is set to False.
+        :raise PermanentError: if the channel has been destroyed or the
+            channel has not been subscribed to any topics.
         """
         if not self._subscribed:
             raise PermanentError("Channel is not subscribed to any topic")
@@ -296,6 +314,13 @@ class Channel(object):
     def commit(self):
         """
         Commits the record offsets to the channel
+
+        :raise ConsumerError: if the consumer associated with the channel
+            does not exist on the server and :attr:`retry_on_fail` is set
+            to False.
+        :raise TemporaryError: if the commit attempt fails and
+            :attr:`retry_on_fail` is set to False.
+        :raise PermanentError: if the channel has been destroyed.
         """
         if not self._records_commit_log:
             return
@@ -322,6 +347,8 @@ class Channel(object):
     def delete(self):
         """
         Deletes the consumer from the consumer group
+
+        :raise TemporaryError: if the delete attempt fails.
         """
         if not self._consumer_id:
             return
@@ -379,6 +406,10 @@ class Channel(object):
         The "with" statement ensures that resources associated with the channel
         are properly cleaned up when the block is exited (the :func:`destroy`
         method is invoked).
+
+        :raise TemporaryError: if a consumer has previously been created for
+            the channel but an attempt to delete the consumer from the
+            channel fails.
         """
         with self._destroy_lock:
             if not self._destroyed:
