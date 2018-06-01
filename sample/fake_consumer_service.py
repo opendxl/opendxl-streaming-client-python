@@ -33,7 +33,7 @@ AUTH_TOKEN = "AnAuthorizationToken"
 AUTH_TOKEN_HEADER = "Bearer {}".format(AUTH_TOKEN)
 
 COOKIE_NAME = "AWSALB"
-CONSUMER_GROUP = "mcafee_investigator_events"
+CONSUMER_GROUP = "sample_consumer_group"
 
 
 def encode_payload(obj):

@@ -21,7 +21,7 @@ class Test(unittest.TestCase):
                          consumer_group=fake_consumer_service.CONSUMER_GROUP) \
                     as channel:
                 channel.create()
-                channel.subscribe()
+                channel.subscribe("case-mgmt-events")
 
                 expected_records = \
                     [json.loads(base64.b64decode(

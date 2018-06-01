@@ -21,12 +21,14 @@ service channel:
         CHANNEL_URL = "http://127.0.0.1:50000"
         CHANNEL_USERNAME = "me"
         CHANNEL_PASSWORD = "secret"
-        CHANNEL_CONSUMER_GROUP = "mcafee_investigator_events"
+        CHANNEL_CONSUMER_GROUP = "sample_consumer_group"
+        CHANNEL_TOPIC_SUBSCRIPTIONS = ["case-mgmt-events"]
         #  Path to a CA bundle file containing certificates of trusted CAs. The CA
         #  bundle is used to validate that the certificate of the server being connected
         #  to was signed by a valid authority. If set to an empty string, the server
         #  certificate is not validated.
         VERIFY_CERTIFICATE_BUNDLE = ""
+
 
 For testing purposes, you can use the ``fake_consumer_service`` Python tool
 embedded in the OpenDXL Streaming Consumer Client SDK to start up a local
@@ -145,10 +147,8 @@ The majority of the sample code is shown below:
                 # was created above.
                 channel.create()
 
-                # Subscribe the consumer to a list of topics. Since no explicit topics are
-                # provided, this defaults to the 'case-mgmt-events' and 'BusinessEvents'
-                # topics.
-                channel.subscribe()
+                # Subscribe the consumer to a list of topics.
+                channel.subscribe(CHANNEL_TOPIC_SUBSCRIPTIONS)
 
                 consumer_error = False
                 while not consumer_error and channel.retry_on_fail:
@@ -184,9 +184,7 @@ consumer on the consumer service for the consumer group supplied when the
 channel was first constructed.
 
 The example calls the ``subscribe`` method in order to subscribe the
-consumer to a list of topics.  Since no explicit topics are provided as an
-argument to the method, this defaults to the "case-mgmt-events" and
-"BusinessEvents" topics.
+consumer to a list of topics.
 
 The example then repeatedly calls the ``consume`` method to consume the next
 list of records available from the service, outputs the contents of the payloads

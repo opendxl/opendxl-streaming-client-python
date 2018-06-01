@@ -15,6 +15,7 @@ from retrying import Retrying
 from furl import furl
 from .auth import login
 from .error import TemporaryError, PermanentError
+from ._compat import is_string
 
 _RETRY_WAIT_EXPONENTIAL_MULTIPLIER = 1000
 _RETRY_WAIT_EXPONENTIAL_MAX = 10000
@@ -117,8 +118,8 @@ class Channel(object):
     """
 
     def __init__(self, base, auth,
+                 consumer_group,
                  path_prefix='/databus/consumer-service/v1',
-                 consumer_group='mcafee_investigator_events',
                  offset='latest',  # earliest
                  timeout=300000,
                  retry_on_fail=True,
@@ -129,9 +130,9 @@ class Channel(object):
         :param str base: Base URL at which the consumer service resides.
         :param requests.auth.AuthBase auth: Authentication object to use
             for channel requests.
-        :param str path_prefix: Path to append to consumer service requests.
         :param str consumer_group: Consumer group to subscribe the channel
             consumer to.
+        :param str path_prefix: Path to append to consumer service requests.
         :param str offset: Offset for the next record to retrieve from the
             consumer service for the new :meth:`consume` call. Must be one
             of 'latest', 'earliest', or 'none'.
@@ -147,7 +148,10 @@ class Channel(object):
         self._base = base
         self._path_prefix = path_prefix
 
+        if not consumer_group:
+            raise PermanentError("Value must be specified for 'consumer_group'")
         self._consumer_group = consumer_group
+
         offset_values = ['latest', 'earliest', 'none']
         if offset not in offset_values:
             raise PermanentError(
@@ -266,13 +270,12 @@ class Channel(object):
                     res.status_code, res.text))
 
     @_retry
-    def subscribe(self, topics=None):
+    def subscribe(self, topics):
         """
         Subscribes the consumer to a list of topics
 
-        :param topics: Topic list. Defaults to "case-mgmt-events" and
-            "BusinessEvents" if not specified.
-        :type topics: list(str)
+        :param topics: Topic list.
+        :type topics: str or list(str)
         :raise ConsumerError: if the consumer associated with the channel
             does not exist on the server and :attr:`retry_on_fail` is set
             to False.
@@ -280,7 +283,9 @@ class Channel(object):
             :attr:`retry_on_fail` is set to False.
         :raise PermanentError: if the channel has been destroyed.
         """
-        topics = topics or ["case-mgmt-events", "BusinessEvents"]
+        if not topics:
+            raise PermanentError("Non-empty value must be specified for topics")
+        topics = [topics] if is_string(topics) else topics
 
         if not self._consumer_id:
             # Auto-create consumer group if none present

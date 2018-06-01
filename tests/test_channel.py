@@ -7,7 +7,6 @@ from dxlstreamingconsumerclient.channel import \
     (ConsumerError, Channel, ChannelAuth)
 from dxlstreamingconsumerclient.error import TemporaryError
 
-
 class Test(unittest.TestCase):
     def setUp(self):
         self.url = "http://localhost"
@@ -137,7 +136,13 @@ class Test(unittest.TestCase):
 
             channel.commit()  # forcing early exit due to no records to commit
 
-            channel.subscribe()
+            channel.subscribe(["topic1", "topic2"])
+            session.return_value.request.assert_called_with(
+                "post",
+                "http://localhost/databus/consumer-service/v1/consumers/1234/subscription",
+                json={"topics": ["topic1", "topic2"]}
+            )
+
             records = channel.consume()
             self.assertEqual(records[0]['id'],
                              'a45a03de-5c3d-452a-8a37-f68be954e784')
