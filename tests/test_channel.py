@@ -53,7 +53,7 @@ class Test(unittest.TestCase):
                                   auth=auth,
                                   consumer_group=self.consumer_group)
                 channel._Channel__hook(res) # pylint: disable=no-member
-                channel._request.send.assert_called_with(res.request) # pylint: disable=no-member
+                channel._session.send.assert_called_with(res.request) # pylint: disable=no-member
 
     def test_main(self):
         auth = ChannelAuth(self.url, self.username, self.password)
@@ -82,9 +82,7 @@ class Test(unittest.TestCase):
 
         with patch('requests.Session') as session:
             session.return_value = MagicMock()  # self.request
-            session.return_value.post = MagicMock()
-            session.return_value.get = MagicMock()
-            session.return_value.delete = MagicMock()
+            session.return_value.request = MagicMock()
 
             create_mock = MagicMock()
             create_mock.status_code = 200
@@ -123,17 +121,20 @@ class Test(unittest.TestCase):
             delete_500_mock = MagicMock()
             delete_500_mock.status_code = 500
 
-            session.return_value.post.side_effect = [
-                create_mock, subscr_mock, commit_consumer_error_mock,
-                commit_error_mock, commit_mock]
-            session.return_value.get.side_effect = [consum_mock]
-            session.return_value.delete.side_effect = [
+            session.return_value.request.side_effect = [
+                create_mock, subscr_mock,
+                consum_mock, commit_consumer_error_mock,
+                commit_error_mock, commit_mock,
                 delete_500_mock, delete_404_mock, delete_mock]
 
             channel = Channel(self.url,
                               auth=auth,
                               consumer_group=self.consumer_group,
-                              retry_on_fail=False)
+                              retry_on_fail=False,
+                              verify="cabundle.crt")
+
+            self.assertEqual(channel._session.verify, "cabundle.crt")
+
             channel.commit()  # forcing early exit due to no records to commit
 
             channel.subscribe()
@@ -150,19 +151,22 @@ class Test(unittest.TestCase):
 
         with self.assertRaises(TemporaryError):
             channel.delete()  # trigger 500
-            session.return_value.delete.assert_called_with(
+            session.return_value.request.assert_called_with(
+                "delete",
                 "http://localhost/databus/consumer-service/v1/consumers/1234")
-            session.return_value.delete.reset_mock()
+            session.return_value.request.reset_mock()
 
         channel.delete()  # trigger silent 404
-        session.return_value.delete.assert_called_with(
+        session.return_value.request.assert_called_with(
+            "delete",
             "http://localhost/databus/consumer-service/v1/consumers/1234")
-        session.return_value.delete.reset_mock()
+        session.return_value.request.reset_mock()
 
         channel._consumer_id = "1234"  # resetting consumer
         channel.delete()  # Proper deletion
-        session.return_value.delete.assert_called_with(
+        session.return_value.request.assert_called_with(
+            "delete",
             "http://localhost/databus/consumer-service/v1/consumers/1234")
-        session.return_value.delete.reset_mock()
+        session.return_value.request.reset_mock()
 
         channel.delete()  # trigger early exit

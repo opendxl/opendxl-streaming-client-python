@@ -22,6 +22,11 @@ service channel:
         CHANNEL_USERNAME = "me"
         CHANNEL_PASSWORD = "secret"
         CHANNEL_CONSUMER_GROUP = "mcafee_investigator_events"
+        #  Path to a CA bundle file containing certificates of trusted CAs. The CA
+        #  bundle is used to validate that the certificate of the server being connected
+        #  to was signed by a valid authority. If set to an empty string, the server
+        #  certificate is not validated.
+        VERIFY_CERTIFICATE_BUNDLE = ""
 
 For testing purposes, you can use the ``fake_consumer_service`` Python tool
 embedded in the OpenDXL Streaming Consumer Client SDK to start up a local
@@ -120,8 +125,12 @@ The majority of the sample code is shown below:
 
         # Create a new channel object
         with Channel(CHANNEL_URL,
-                     auth=ChannelAuth(CHANNEL_URL, CHANNEL_USERNAME, CHANNEL_PASSWORD),
-                     consumer_group=CHANNEL_CONSUMER_GROUP) as channel:
+                     auth=ChannelAuth(CHANNEL_URL,
+                                      CHANNEL_USERNAME,
+                                      CHANNEL_PASSWORD,
+                                      verify=VERIFY_CERTIFICATE_BUNDLE),
+                     consumer_group=CHANNEL_CONSUMER_GROUP,
+                     verify=VERIFY_CERTIFICATE_BUNDLE) as channel:
             # Register a signal handler to be invoked when a user interrupts the
             # running sample (for example, by pressing CTRL-C)
             def signal_handler(*_):
