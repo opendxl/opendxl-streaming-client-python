@@ -53,7 +53,7 @@ class Test(unittest.TestCase):
                                   auth=auth,
                                   consumer_group=self.consumer_group)
                 channel._Channel__hook(res) # pylint: disable=no-member
-                channel.request.send.assert_called_with(res.request) # pylint: disable=no-member
+                channel._request.send.assert_called_with(res.request) # pylint: disable=no-member
 
     def test_main(self):
         auth = ChannelAuth(self.url, self.username, self.password)
@@ -159,7 +159,7 @@ class Test(unittest.TestCase):
             "http://localhost/databus/consumer-service/v1/consumers/1234")
         session.return_value.delete.reset_mock()
 
-        channel.consumer_id = "1234"  # resetting consumer
+        channel._consumer_id = "1234"  # resetting consumer
         channel.delete()  # Proper deletion
         session.return_value.delete.assert_called_with(
             "http://localhost/databus/consumer-service/v1/consumers/1234")

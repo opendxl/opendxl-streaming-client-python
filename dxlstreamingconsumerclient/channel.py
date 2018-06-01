@@ -120,27 +120,27 @@ class Channel(object):
         :param bool retry_on_fail: Whether or not the channel will
             automatically retry a call which failed due to a temporary error.
         """
-        self.base = base
-        self.path_prefix = path_prefix
+        self._base = base
+        self._path_prefix = path_prefix
 
-        self.consumer_group = consumer_group
+        self._consumer_group = consumer_group
         offset_values = ['latest', 'earliest', 'none']
         if offset not in offset_values:
             raise PermanentError(
                 "Value for 'offset' must be one of: {}".format(
                     ', '.join(offset_values)))
-        self.offset = offset
-        self.timeout = timeout
+        self._offset = offset
+        self._timeout = timeout
 
         # state variables
-        self.consumer_id = None
-        self.subscribed = False
-        self.records_commit_log = []
+        self._consumer_id = None
+        self._subscribed = False
+        self._records_commit_log = []
 
         # Create a session object so that we can store cookies across requests
-        self.request = requests.Session()
-        self.request.auth = auth
-        self.request.hooks['response'].append(self.__hook)
+        self._request = requests.Session()
+        self._request.auth = auth
+        self._request.hooks['response'].append(self.__hook)
 
         self._retry_on_fail = retry_on_fail
         self._retry_if_not_consumer_error = \
@@ -165,13 +165,13 @@ class Channel(object):
                 logging.warning("Not retrying failures, will not attempt to "
                                 "refresh token")
                 return res  # returning original result
-            self.request.auth.reset()
+            self._request.auth.reset()
 
             req = res.request
             logging.warning("Resending request: %s, %s, %s",
                             req.method, req.url, req.headers)
-            req.headers["Authorization"] = self.request.auth.token
-            return self.request.send(res.request)
+            req.headers["Authorization"] = self._request.auth.token
+            return self._request.send(res.request)
 
     def _retry_if_not_consumer_error_fn(self):
         def _retry_if_not_consumer_error(exception):
@@ -191,9 +191,9 @@ class Channel(object):
         """
         Resets local consumer data stored for the channel.
         """
-        self.consumer_id = None
-        self.subscribed = False
-        self.records_commit_log = []
+        self._consumer_id = None
+        self._subscribed = False
+        self._records_commit_log = []
 
     @_retry
     def create(self):
@@ -202,20 +202,20 @@ class Channel(object):
         """
         self.reset()
 
-        url = furl(self.base).add(path=self.path_prefix).add(
+        url = furl(self._base).add(path=self._path_prefix).add(
             path="consumers").url
         payload = {
-            'consumerGroup': self.consumer_group,
+            'consumerGroup': self._consumer_group,
             'configs': {
-                'session.timeout.ms': str(self.timeout),
+                'session.timeout.ms': str(self._timeout),
                 'enable.auto.commit': 'false',  # this has to be false for now
-                'auto.offset.reset': self.offset
+                'auto.offset.reset': self._offset
             }
         }
-        res = self.request.post(url, json=payload)
+        res = self._request.post(url, json=payload)
 
         if res.status_code in [200, 201, 202, 204]:
-            self.consumer_id = res.json()['consumerInstanceId']
+            self._consumer_id = res.json()['consumerInstanceId']
         else:
             raise TemporaryError(
                 "Unexpected temporary error {}: {}".format(
@@ -232,20 +232,20 @@ class Channel(object):
         """
         topics = topics or ["case-mgmt-events", "BusinessEvents"]
 
-        if not self.consumer_id:
+        if not self._consumer_id:
             # Auto-create consumer group if none present
             self.create()
 
-        url = furl(self.base).add(path=self.path_prefix).add(
+        url = furl(self._base).add(path=self._path_prefix).add(
             path="consumers/{}/subscription".format(
-                self.consumer_id)).url
-        res = self.request.post(url, json={'topics': topics})
+                self._consumer_id)).url
+        res = self._request.post(url, json={'topics': topics})
 
         if res.status_code in [200, 201, 202, 204]:
-            self.subscribed = True
+            self._subscribed = True
         elif res.status_code in [404]:
             raise ConsumerError("Consumer '{}' does not exist".format(
-                self.consumer_id
+                self._consumer_id
             ))
         else:
             raise TemporaryError(
@@ -257,13 +257,13 @@ class Channel(object):
         """
         Consumes records from all the subscribed topics
         """
-        if not self.subscribed:
+        if not self._subscribed:
             raise PermanentError("Channel is not subscribed to any topic")
 
-        url = furl(self.base).add(path=self.path_prefix).add(
-            path="consumers/{}/records".format(self.consumer_id)).url
+        url = furl(self._base).add(path=self._path_prefix).add(
+            path="consumers/{}/records".format(self._consumer_id)).url
 
-        res = self.request.get(url)
+        res = self._request.get(url)
 
         if res.status_code in [200, 201, 202, 204]:
             try:
@@ -277,7 +277,7 @@ class Channel(object):
                     })
                     payloads.append(json.loads(base64.b64decode(
                         record['message']['payload']).decode()))
-                self.records_commit_log.extend(commit_log)
+                self._records_commit_log.extend(commit_log)
                 return payloads
             except Exception as exp:
                 raise TemporaryError(
@@ -285,7 +285,7 @@ class Channel(object):
                         str(exp)))
         elif res.status_code in [404]:
             raise ConsumerError("Consumer '{}' does not exist".format(
-                self.consumer_id
+                self._consumer_id
             ))
         else:
             raise TemporaryError(
@@ -297,22 +297,22 @@ class Channel(object):
         """
         Commits the record offsets to the channel
         """
-        if not self.records_commit_log:
+        if not self._records_commit_log:
             return
-        url = furl(self.base).add(path=self.path_prefix).add(
+        url = furl(self._base).add(path=self._path_prefix).add(
             path="consumers/{}/offsets".format(
-                self.consumer_id)).url
+                self._consumer_id)).url
 
         payload = {
-            'offsets': self.records_commit_log
+            'offsets': self._records_commit_log
         }
-        res = self.request.post(url, json=payload)
+        res = self._request.post(url, json=payload)
 
         if res.status_code in [200, 201, 202, 204]:
-            self.records_commit_log = []
+            self._records_commit_log = []
         elif res.status_code in [404]:
             raise ConsumerError("Consumer '{}' does not exist".format(
-                self.consumer_id
+                self._consumer_id
             ))
         else:
             raise TemporaryError(
@@ -323,21 +323,21 @@ class Channel(object):
         """
         Deletes the consumer from the consumer group
         """
-        if not self.consumer_id:
+        if not self._consumer_id:
             return
-        url = furl(self.base).add(path=self.path_prefix).add(
+        url = furl(self._base).add(path=self._path_prefix).add(
             path="consumers/{}".format(
-                self.consumer_id)).url
+                self._consumer_id)).url
 
-        res = self.request.delete(url)
+        res = self._request.delete(url)
 
         if res.status_code in [200, 201, 202, 204]:
-            self.consumer_id = None
+            self._consumer_id = None
         elif res.status_code in [404]:
             logging.warning(
                 "Consumer with ID %s not found. "
-                "Resetting consumer anyways.", self.consumer_id)
-            self.consumer_id = None
+                "Resetting consumer anyways.", self._consumer_id)
+            self._consumer_id = None
         else:
             raise TemporaryError(
                 "Unexpected temporary error {}: {}".format(
@@ -383,5 +383,5 @@ class Channel(object):
         with self._destroy_lock:
             if not self._destroyed:
                 self.delete()
-                self.request.close()
+                self._request.close()
                 self._destroyed = True
