@@ -13,14 +13,10 @@ import threading
 import logging
 
 try:
-    from http.server import SimpleHTTPRequestHandler
+    from http.server import HTTPServer, SimpleHTTPRequestHandler
 except ImportError:
+    from BaseHTTPServer import HTTPServer
     from SimpleHTTPServer import SimpleHTTPRequestHandler
-
-try:
-    from socketserver import TCPServer
-except ImportError:
-    from SocketServer import TCPServer
 
 DEFAULT_PORT = 50000
 DEFAULT_LOG_LEVEL = logging.INFO
@@ -201,12 +197,11 @@ class ConsumerService(object):
             if not self._started:
                 self._started = True
                 LOG.info("Starting service")
-                self._server = TCPServer(
+                self._server = HTTPServer(
                     ('', self.port), consumer_service_handler(self))
-                server_address = self._server.server_address
-                self.port = server_address[1]
+                self.port = self._server.server_port
                 LOG.info("Started service on %s:%s",
-                         str(server_address[0]), self.port)
+                         self._server.server_name, self.port)
                 self._server_thread = threading.Thread(
                     target=self._server.serve_forever)
                 self._server_thread.start()
