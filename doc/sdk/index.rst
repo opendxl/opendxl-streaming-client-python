@@ -20,22 +20,17 @@ Installation
 Samples
 -------
 
-Configuration
-
-.. toctree::
-    :maxdepth: 1
-
-    sampleconfig
-
 Basic
 
-    TODO: Provide samples documentation
+.. toctree::
+	:maxdepth: 1
+
+	basicconsumeexample
 
 Python API
 ----------
 
 .. toctree::
-    :titlesonly:
+	:titlesonly:
 
-    dxlstreamingconsumerclient
-
+	dxlstreamingconsumerclient
