@@ -4,9 +4,8 @@ import base64
 import json
 from mock import patch, MagicMock
 from dxlstreamingconsumerclient.channel import \
-    (retry_if_not_consumer_error, ConsumerError, Channel, ChannelAuth)
+    (ConsumerError, Channel, ChannelAuth)
 from dxlstreamingconsumerclient.error import TemporaryError
-from dxlstreamingconsumerclient import globals # pylint: disable=redefined-builtin
 
 
 class Test(unittest.TestCase):
@@ -20,8 +19,14 @@ class Test(unittest.TestCase):
         pass
 
     def test_retry_condition(self):
-        self.assertFalse(retry_if_not_consumer_error(ConsumerError()))
-        self.assertTrue(retry_if_not_consumer_error(Exception()))
+        auth = ChannelAuth(self.url, self.username, self.password)
+        with patch('requests.Session'):
+            channel = Channel(self.url,
+                              auth=auth,
+                              consumer_group=self.consumer_group)
+            self.assertFalse(channel._retry_if_not_consumer_error(
+                ConsumerError()))
+            self.assertTrue(channel._retry_if_not_consumer_error(Exception()))
 
     def test_channel_auth(self):
         auth = ChannelAuth(self.url, self.username, self.password)
@@ -51,7 +56,6 @@ class Test(unittest.TestCase):
                 channel.request.send.assert_called_with(res.request) # pylint: disable=no-member
 
     def test_main(self):
-        globals.interrupted = True  # force disabling of retry mechanism
         auth = ChannelAuth(self.url, self.username, self.password)
 
         case_event = {
@@ -128,8 +132,8 @@ class Test(unittest.TestCase):
 
             channel = Channel(self.url,
                               auth=auth,
-                              consumer_group=self.consumer_group)
-
+                              consumer_group=self.consumer_group,
+                              retry_on_fail=False)
             channel.commit()  # forcing early exit due to no records to commit
 
             channel.subscribe()
@@ -162,5 +166,3 @@ class Test(unittest.TestCase):
         session.return_value.delete.reset_mock()
 
         channel.delete()  # trigger early exit
-
-        globals.interrupted = False  # re-enabling retry mechanism
