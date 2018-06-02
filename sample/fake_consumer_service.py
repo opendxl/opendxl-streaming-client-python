@@ -20,6 +20,8 @@ except ImportError:
 
 DEFAULT_PORT = 50000
 DEFAULT_LOG_LEVEL = logging.INFO
+REQUESTS_PER_TOKEN = 25
+REQUESTS_PER_CONSUMER = 10
 RUN_CHECK_WAIT = 5
 MAX_SHUTDOWN_WAIT = 10
 PATH_PREFIX = "/databus/consumer-service/v1"
@@ -28,9 +30,6 @@ AUTH_USER = "me"
 AUTH_PASSWORD = "secret"
 AUTH_USER_HEADER = "Basic {}".format(base64.b64encode(
     "{}:{}".format(AUTH_USER, AUTH_PASSWORD).encode()).decode())
-
-AUTH_TOKEN = "AnAuthorizationToken"
-AUTH_TOKEN_HEADER = "Bearer {}".format(AUTH_TOKEN)
 
 COOKIE_NAME = "AWSALB"
 CONSUMER_GROUP = "sample_consumer_group"
@@ -111,26 +110,26 @@ DEFAULT_RECORDS = [
 LOG = logging.getLogger(__name__)
 
 
+def create_service_path(subpath):
+    return "^{}/{}$".format(PATH_PREFIX, subpath)
+
+
 def consumer_service_handler(consumer_service):
     class ConsumerServiceHandler(SimpleHTTPRequestHandler):
         def __init__(self, request, client_address, server):
             self._consumer_service = consumer_service
-            self._get_routes = {
-                "^/identity/v1/login$": _login,
-                "^{}/consumers/[^/]+/records$".format(PATH_PREFIX):
-                    _get_records
-            }
-            self._post_routes = {
-                "^{}/consumers$".format(PATH_PREFIX): _create_consumer,
-                "^{}/consumers/[^/]+/subscription$".format(PATH_PREFIX):
-                    _create_subscription,
-                "^{}/consumers/[^/]+/offsets$".format(PATH_PREFIX):
-                    _commit_offsets,
-                "^/reset-records$": _reset_records
-            }
-            self._delete_routes = {
-                "^{}/consumers/[^/]+$".format(PATH_PREFIX):
-                    _delete_consumer
+            self._routes = {
+                "^/identity/v1/login$": {"GET": _login},
+                create_service_path("consumers/[^/]+/records"):
+                    {"GET": _get_records},
+                create_service_path("consumers"): {"POST": _create_consumer},
+                create_service_path("consumers/[^/]+/subscription"):
+                    {"POST": _create_subscription},
+                create_service_path("consumers/[^/]+/offsets"):
+                    {"POST": _commit_offsets},
+                "^/reset-records$": {"POST": _reset_records},
+                create_service_path("consumers/[^/]+"):
+                    {"DELETE": _delete_consumer}
             }
             SimpleHTTPRequestHandler.__init__(self, request, client_address,
                                               server)
@@ -149,27 +148,41 @@ def consumer_service_handler(consumer_service):
             if body:
                 self.wfile.write(body.encode())
 
-        def _handle_request(self, routes):
+        def _handle_request(self, method):
             matched = False
-            for route_path, route_func in routes.items():
+            for route_path, route_func in self._routes.items():
                 if re.match(route_path, self.path):
                     matched = True
-                    response = route_func(
-                        handler=self,
-                        consumer_service=self._consumer_service)
-                    self._send_response(*response)
+                    route_func = self._routes[route_path].get(method)
+                    if route_func:
+                        consumer_service._request_count += 1
+                        LOG.debug("Total request count: %d",
+                                  consumer_service._request_count)
+                        response = route_func(
+                            handler=self,
+                            consumer_service=self._consumer_service)
+                        self._send_response(*response)
+                    else:
+                        self._send_response(
+                            405,
+                            "Route ({}) not allowed for method ({})".format(
+                                self.path, method
+                            )
+                        )
                     break
             if not matched:
-                self._send_response(404, 'Route not found: ' + self.path)
+                self._send_response(
+                    404,
+                    "Route ({}) not found".format(self.path))
 
         def do_GET(self):
-            self._handle_request(self._get_routes)
+            self._handle_request("GET")
 
         def do_POST(self): # pylint: disable=invalid-name
-            self._handle_request(self._post_routes)
+            self._handle_request("POST")
 
         def do_DELETE(self): # pylint: disable=invalid-name
-            self._handle_request(self._delete_routes)
+            self._handle_request("DELETE")
 
     return ConsumerServiceHandler
 
@@ -184,6 +197,8 @@ class ConsumerService(object):
         self._server_thread = None
         self._started = False
         self._subscribed_topics = set()
+        self._token = random_val()
+        self._request_count = 0
 
     def __enter__(self):
         self.start()
@@ -232,12 +247,19 @@ def _user_auth(f):
 
 def _token_auth(f):
     @wraps(f)
-    def decorated(handler, *args, **kwargs):
-        if handler.headers.get("Authorization") == AUTH_TOKEN_HEADER:
+    def decorated(handler, consumer_service, *args, **kwargs):
+        if REQUESTS_PER_TOKEN and \
+                                consumer_service._request_count % \
+                                REQUESTS_PER_TOKEN == 0:
+            consumer_service._token = random_val()
+            response = 403, "Token expired", {"WWW-Authenticate": "Bearer"}
+        elif handler.headers.get("Authorization") == \
+                "Bearer {}".format(consumer_service._token):
+            kwargs['consumer_service'] = consumer_service
             kwargs['handler'] = handler
             response = f(*args, **kwargs)
         else:
-            response = 403, "Invalid user", {"WWW-Authenticate": "Bearer"}
+            response = 403, "Invalid token", {"WWW-Authenticate": "Bearer"}
         return response
     return decorated
 
@@ -262,14 +284,22 @@ def _consumer_auth(f):
         else:
             consumer_instance_id = consumer_instance_id_match.group(1)
             with consumer_service._lock:
-                consumer_cookie = consumer_service._active_consumers.get(
+                consumer = consumer_service._active_consumers.get(
                     consumer_instance_id)
-            if not consumer_cookie:
+            if not consumer:
                 response = 404, "Unknown consumer"
+            elif REQUESTS_PER_CONSUMER and \
+                                    (consumer["requests"] + 1) % \
+                                    REQUESTS_PER_CONSUMER == 0:
+                consumer_service._active_consumers.pop(consumer_instance_id)
+                response = 403, "Cookie expired"
             elif handler.headers.get(
-                    "Cookie") != "{}={}".format(COOKIE_NAME, consumer_cookie):
+                    "Cookie") != "{}={}".format(COOKIE_NAME,
+                                                consumer["cookie"]):
                 response = 403, "Invalid cookie"
             else:
+                consumer["requests"] += 1
+                LOG.debug("Consumer request count: %d", consumer["requests"])
                 kwargs["consumer_instance_id"] = consumer_instance_id
                 kwargs["handler"] = handler
                 kwargs["consumer_service"] = consumer_service
@@ -279,16 +309,16 @@ def _consumer_auth(f):
 
 
 @_user_auth
-def _login(*args, **kwargs): # pylint: disable=unused-argument
-    return 200, {"AuthorizationToken": AUTH_TOKEN}
+def _login(consumer_service, **kwargs): # pylint: disable=unused-argument
+    return 200, {"AuthorizationToken": consumer_service._token}
 
 
 def random_val():
     return "".join(random.choice(string.ascii_uppercase) for _ in range(5))
 
 
-@_consumer_auth
 @_token_auth
+@_consumer_auth
 def _delete_consumer(consumer_instance_id, consumer_service, **kwargs): # pylint: disable=unused-argument
     status_code = 204 \
         if consumer_service._active_consumers.pop(consumer_instance_id, None) \
@@ -303,7 +333,10 @@ def _create_consumer(body, consumer_service, **kwargs): # pylint: disable=unused
         consumer_id = random_val()
         cookie_value = random_val()
         with consumer_service._lock:
-            consumer_service._active_consumers[consumer_id] = cookie_value
+            consumer_service._active_consumers[consumer_id] = {
+                "cookie": cookie_value,
+                "requests": 0
+            }
         response = 200, {"consumerInstanceId": consumer_id}, \
                    {"Set-Cookie": "{}={}".format(COOKIE_NAME, cookie_value)}
     else:
@@ -311,8 +344,8 @@ def _create_consumer(body, consumer_service, **kwargs): # pylint: disable=unused
     return response
 
 
-@_consumer_auth
 @_token_auth
+@_consumer_auth
 @_json_body
 def _create_subscription(body, consumer_service, **kwargs): # pylint: disable=unused-argument
     topics = body.get("topics")
@@ -322,8 +355,8 @@ def _create_subscription(body, consumer_service, **kwargs): # pylint: disable=un
                 consumer_service._subscribed_topics.add(topic)
     return 204, ""
 
-@_consumer_auth
 @_token_auth
+@_consumer_auth
 def _get_records(consumer_service, **kwargs): # pylint: disable=unused-argument
     with consumer_service._lock:
         subscribed_records = \
@@ -342,8 +375,8 @@ def record_in_offsets(record, offsets):
     return any(record_matches_offset(record, offset) for offset in offsets)
 
 
-@_consumer_auth
 @_token_auth
+@_consumer_auth
 @_json_body
 def _commit_offsets(body, consumer_service, **kwargs): # pylint: disable=unused-argument
     committed_offsets = body.get("offsets")

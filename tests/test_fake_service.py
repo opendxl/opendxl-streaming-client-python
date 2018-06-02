@@ -1,10 +1,19 @@
 from __future__ import absolute_import
 import base64
 import json
+import os
+import sys
 import unittest
 from furl import furl
 from dxlstreamingconsumerclient.channel import (Channel, ChannelAuth)
-from sample import fake_consumer_service
+
+# Add the local sample directory to the path just during the
+# fake_consumer_service import to avoid inadvertently resolving "sample" to an
+# unintended location in the Python module path.
+ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, ROOT_DIR + "/..")
+from sample import fake_consumer_service # pylint: disable=wrong-import-position
+del sys.path[0]
 
 BASE_CHANNEL_URL = "http://localhost"
 

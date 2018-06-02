@@ -38,7 +38,7 @@ class LintCommand(Command):
         self.announce("Running pylint for library source files, tools, and tests",
                       level=distutils.log.INFO)
         subprocess.check_call(
-            ["pylint", "dxlstreamingconsumerclient", "tools", "tests"] +
+            ["pylint", "dxlstreamingconsumerclient", "tests"] +
             glob.glob("*.py"))
         self.announce("Running pylint for samples", level=distutils.log.INFO)
         subprocess.check_call(["pylint"] + glob.glob("sample/*.py") +

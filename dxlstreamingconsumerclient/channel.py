@@ -67,28 +67,17 @@ class ChannelAuth(requests.auth.AuthBase):
         self._verify = verify
         super(ChannelAuth, self).__init__()
 
-    def _set_token(self):
-        self._token = login(self._base, self._username,
-                            self._password, verify=self._verify)
-
     def reset(self):
         """
-        Perform a new login attempt in order to establish a new server token.
+        Purge any credentials cached from a previous authentication.
         """
-        self._set_token()
-
-    @property
-    def token(self):
-        """
-        Token retrieved from the authentication server using the username
-        and password credentials supplied to the constructor.
-        """
-        return self._token
+        self._token = None
 
     def __call__(self, r):
         # Implement my authentication
         if not self._token:
-            self._set_token()
+            self._token = login(self._base, self._username,
+                                self._password, verify=self._verify)
         r.headers['Authorization'] = "Bearer {}".format(self._token)
         return r
 
@@ -168,7 +157,6 @@ class Channel(object):
         # Create a session object so that we can store cookies across requests
         self._session = requests.Session()
         self._session.auth = auth
-        self._session.hooks['response'].append(self.__hook)
         self._session.verify = verify
 
         self._retry_on_fail = retry_on_fail
@@ -185,22 +173,6 @@ class Channel(object):
     def __exit__(self, *_):
         """Exit with"""
         self.destroy()
-
-    def __hook(self, res, *args, **kwargs): # pylint: disable=inconsistent-return-statements, unused-argument
-        if res.status_code in [401, 403]:
-            logging.warning("Token potentially expired (%s): %s",
-                            res.status_code, res.text)
-            if not self.retry_on_fail:
-                logging.warning("Not retrying failures, will not attempt to "
-                                "refresh token")
-                return res  # returning original result
-            self._session.auth.reset()
-
-            req = res.request
-            logging.warning("Resending request: %s, %s, %s",
-                            req.method, req.url, req.headers)
-            req.headers["Authorization"] = self._session.auth.token
-            return self._session.send(res.request)
 
     def _retry_if_not_consumer_error_fn(self):
         def _retry_if_not_consumer_error(exception):
@@ -219,7 +191,14 @@ class Channel(object):
         with warnings.catch_warnings():
             if not self._session.verify:
                 warnings.filterwarnings("ignore", "Unverified HTTPS request")
-            return self._session.request(method, url, **kwargs)
+            response = self._session.request(method, url, **kwargs)
+            if response.status_code in [401, 403]:
+                if hasattr(self._session.auth, "reset"):
+                    self._session.auth.reset()
+                raise TemporaryError(
+                    "Token potentially expired ({}): {}".format(
+                        response.status_code, response.text))
+        return response
 
     def _delete_request(self, url, **kwargs):
         return self._request("delete", url, **kwargs)

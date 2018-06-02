@@ -34,25 +34,64 @@ class Test(unittest.TestCase):
         with patch('requests.get') as req_get:
             req_get.return_value = MagicMock()
             req_get.return_value.status_code = 200
-            token = "1234567890"
+
+            original_token = "1234567890"
             req_get.return_value.json = MagicMock(
-                return_value={'AuthorizationToken': token})
+                return_value={'AuthorizationToken': original_token})
 
             req = auth(req)
             self.assertIsNotNone(req)
             self.assertEqual(req.headers['Authorization'],
-                             'Bearer {}'.format(token))
+                             'Bearer {}'.format(original_token))
+
+            new_token = "ABCDEFGHIJ"
+            req_get.return_value.json = MagicMock(
+                return_value={'AuthorizationToken': new_token})
+
+            # Even though the token that would be returned for a login attempt
+            # has changed, the original token should be returned because it
+            # was cached on the auth object.
+            req = auth(req)
+            self.assertIsNotNone(req)
+            self.assertEqual(req.headers['Authorization'],
+                             'Bearer {}'.format(original_token))
 
             res = MagicMock()
             res.status_code = 403
             res.request.headers = {}
 
-            with patch('requests.Session'):
+            with patch('requests.Session') as session:
                 channel = Channel(self.url,
                                   auth=auth,
                                   consumer_group=self.consumer_group)
-                channel._Channel__hook(res) # pylint: disable=no-member
-                channel._session.send.assert_called_with(res.request) # pylint: disable=no-member
+
+                create_403_mock = MagicMock()
+                create_403_mock.status_code = 403
+
+                create_200_mock = MagicMock()
+                create_200_mock.status_code = 200
+                create_200_mock.json = MagicMock(
+                    return_value={'consumerInstanceId': 1234},
+                )
+
+                self.assertIsNone(channel._consumer_id)
+                self.assertEqual(auth._token, original_token)
+                session.return_value.request.side_effect = [
+                    create_403_mock, create_200_mock
+                ]
+
+                channel.create()
+
+                self.assertEqual(channel._consumer_id, 1234)
+
+                # The 403 returned from the channel create call above should
+                # lead to a new token being issued for the next authentication
+                # call.
+                req = auth(req)
+                self.assertIsNotNone(req)
+                self.assertEqual(req.headers['Authorization'],
+                                 'Bearer {}'.format(new_token))
+                self.assertEqual(auth._token, new_token)
 
     def test_main(self):
         auth = ChannelAuth(self.url, self.username, self.password)
@@ -80,7 +119,7 @@ class Test(unittest.TestCase):
         encoded_event = base64.b64encode(json.dumps(case_event).encode())
 
         with patch('requests.Session') as session:
-            session.return_value = MagicMock()  # self.request
+            session.return_value = MagicMock()  # self._session
             session.return_value.request = MagicMock()
 
             create_mock = MagicMock()
