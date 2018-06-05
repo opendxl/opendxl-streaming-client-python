@@ -18,7 +18,7 @@ service channel:
 
     .. code-block:: python
 
-        CHANNEL_URL = "http://127.0.0.1:50000"
+        CHANNEL_URL = "http://127.0.0.1:50080"
         CHANNEL_USERNAME = "me"
         CHANNEL_PASSWORD = "secret"
         CHANNEL_CONSUMER_GROUP = "sample_consumer_group"
@@ -48,7 +48,7 @@ Messages like the following should appear in the command window:
     .. code-block:: shell
 
         INFO:__main__:Starting service
-        INFO:__main__:Started service on 0.0.0.0:50000
+        INFO:__main__:Started service on myserver:50080
 
 Running
 *******

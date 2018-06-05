@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 
 # Change these below to match the appropriate details for your
 # channel connection.
-CHANNEL_URL = "http://127.0.0.1:50000"
+CHANNEL_URL = "http://127.0.0.1:50080"
 CHANNEL_USERNAME = "me"
 CHANNEL_PASSWORD = "secret"
 CHANNEL_CONSUMER_GROUP = "sample_consumer_group"

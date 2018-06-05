@@ -7,6 +7,7 @@ import json
 import re
 import random
 import signal
+import ssl
 import string
 import sys
 import threading
@@ -18,8 +19,11 @@ except ImportError:
     from BaseHTTPServer import HTTPServer
     from SimpleHTTPServer import SimpleHTTPRequestHandler
 
-DEFAULT_PORT = 50000
-DEFAULT_LOG_LEVEL = logging.INFO
+DEFAULT_PORT = 50080
+LOG_LEVEL = logging.INFO
+USE_SSL = False
+SERVER_CERT_FILE = None
+SERVER_KEY_FILE = None
 REQUESTS_PER_TOKEN = 25
 REQUESTS_PER_CONSUMER = 10
 RUN_CHECK_WAIT = 5
@@ -189,7 +193,7 @@ def consumer_service_handler(consumer_service):
 
 class ConsumerService(object):
     def __init__(self, port=DEFAULT_PORT):
-        self.port = port
+        self._port = port
         self._active_consumers = {}
         self._active_records = list(DEFAULT_RECORDS)
         self._lock = threading.Lock()
@@ -207,6 +211,10 @@ class ConsumerService(object):
     def __exit__(self, exception_type, exception_value, traceback):
         self.stop()
 
+    @property
+    def port(self):
+        return self._server.server_port if self._server else self._port
+
     def start(self):
         with self._lock:
             if not self._started:
@@ -214,9 +222,13 @@ class ConsumerService(object):
                 LOG.info("Starting service")
                 self._server = HTTPServer(
                     ('', self.port), consumer_service_handler(self))
-                self.port = self._server.server_port
+                if USE_SSL:
+                    self._server.socket = ssl.wrap_socket(
+                        self._server.socket, certfile=SERVER_CERT_FILE,
+                        keyfile=SERVER_KEY_FILE, server_side=True
+                    )
                 LOG.info("Started service on %s:%s",
-                         self._server.server_name, self.port)
+                         self._server.server_name, self._server.server_port)
                 self._server_thread = threading.Thread(
                     target=self._server.serve_forever)
                 self._server_thread.start()
