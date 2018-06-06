@@ -199,7 +199,7 @@ a line similar to the following:</p>
         <span class="c1"># for the consumer - in which case this example will repeat the loop</span>
         <span class="c1"># (creating a new consumer, subscribing the new consumer, and</span>
         <span class="c1"># consuming additional records).</span>
-        <span class="n">channel</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">consume_callback</span><span class="p">)</span>
+        <span class="n">channel</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">consume_callback</span><span class="p">,</span> <span class="n">wait_between_queries</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
 </pre></div>
 </div>
 </div></blockquote>
@@ -224,7 +224,8 @@ polls the consumer service for available records. The payloads from any records
 which are received from the consumer service are passed in a call to the
 <code class="docutils literal notranslate"><span class="pre">consume_callback</span></code> function. Note that if no records are received from a poll
 attempt, an empty list of payloads is passed into the <code class="docutils literal notranslate"><span class="pre">consume_callback</span></code>
-function.</p>
+function. The optional <code class="docutils literal notranslate"><span class="pre">wait_between_queries</span></code> parameter is specified as <code class="docutils literal notranslate"><span class="pre">5</span></code>
+in order for the consumer service polls to only be made every <code class="docutils literal notranslate"><span class="pre">5</span></code> seconds.</p>
 <p>If a <code class="docutils literal notranslate"><span class="pre">ConsumerError</span></code> is raised by the consumer service during processing of
 the <code class="docutils literal notranslate"><span class="pre">run</span></code> method, the <code class="docutils literal notranslate"><span class="pre">run</span></code> method call will return. This may occur, for
 example, if the consumer session with the service expires. In this case, the

@@ -229,7 +229,7 @@ failed due to a temporary error.</p>
 
 <dl class="method">
 <dt id="dxlstreamingconsumerclient.channel.Channel.run">
-<code class="descname">run</code><span class="sig-paren">(</span><em>consume_callback</em>, <em>wait_between_queries=5</em><span class="sig-paren">)</span><a class="headerlink" href="#dxlstreamingconsumerclient.channel.Channel.run" title="Permalink to this definition">¶</a></dt>
+<code class="descname">run</code><span class="sig-paren">(</span><em>consume_callback</em>, <em>wait_between_queries=30</em><span class="sig-paren">)</span><a class="headerlink" href="#dxlstreamingconsumerclient.channel.Channel.run" title="Permalink to this definition">¶</a></dt>
 <dd><p>Repeatedly consume records from the subscribed topics. The supplied
 <code class="docutils literal notranslate"><span class="pre">consume_callback</span></code> is invoked with a <code class="docutils literal notranslate"><span class="pre">list</span></code> containing each payload
 (as a dictionary) extracted from its corresponding record.</p>

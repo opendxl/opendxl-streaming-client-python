@@ -160,7 +160,7 @@ The majority of the sample code is shown below:
                 # for the consumer - in which case this example will repeat the loop
                 # (creating a new consumer, subscribing the new consumer, and
                 # consuming additional records).
-                channel.run(consume_callback)
+                channel.run(consume_callback, wait_between_queries=5)
 
 
 The first step is to create a channel to the consumer service. The channel
@@ -188,7 +188,8 @@ polls the consumer service for available records. The payloads from any records
 which are received from the consumer service are passed in a call to the
 ``consume_callback`` function. Note that if no records are received from a poll
 attempt, an empty list of payloads is passed into the ``consume_callback``
-function.
+function. The optional ``wait_between_queries`` parameter is specified as ``5``
+in order for the consumer service polls to only be made every ``5`` seconds.
 
 If a ``ConsumerError`` is raised by the consumer service during processing of
 the ``run`` method, the ``run`` method call will return. This may occur, for
