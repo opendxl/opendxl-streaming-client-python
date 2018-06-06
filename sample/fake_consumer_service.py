@@ -4,6 +4,7 @@ from __future__ import absolute_import
 import base64
 from functools import wraps
 import json
+import logging
 import re
 import random
 import signal
@@ -11,7 +12,7 @@ import ssl
 import string
 import sys
 import threading
-import logging
+import time
 
 try:
     from http.server import HTTPServer, SimpleHTTPRequestHandler
@@ -25,7 +26,6 @@ USE_SSL = False
 SERVER_CERT_FILE = None
 SERVER_KEY_FILE = None
 REQUESTS_PER_TOKEN = 25
-REQUESTS_PER_CONSUMER = 10
 RUN_CHECK_WAIT = 5
 MAX_SHUTDOWN_WAIT = 10
 PATH_PREFIX = "/databus/consumer-service/v1"
@@ -300,18 +300,14 @@ def _consumer_auth(f):
                     consumer_instance_id)
             if not consumer:
                 response = 404, "Unknown consumer"
-            elif REQUESTS_PER_CONSUMER and \
-                                    (consumer["requests"] + 1) % \
-                                    REQUESTS_PER_CONSUMER == 0:
+            elif time.time() >= consumer["sessionExpirationTime"]:
                 consumer_service._active_consumers.pop(consumer_instance_id)
-                response = 403, "Cookie expired"
+                response = 403, "Consumer session expired"
             elif handler.headers.get(
                     "Cookie") != "{}={}".format(COOKIE_NAME,
                                                 consumer["cookie"]):
                 response = 403, "Invalid cookie"
             else:
-                consumer["requests"] += 1
-                LOG.debug("Consumer request count: %d", consumer["requests"])
                 kwargs["consumer_instance_id"] = consumer_instance_id
                 kwargs["handler"] = handler
                 kwargs["consumer_service"] = consumer_service
@@ -345,10 +341,17 @@ def _create_consumer(body, consumer_service, **kwargs): # pylint: disable=unused
         consumer_id = random_val()
         cookie_value = random_val()
         with consumer_service._lock:
-            consumer_service._active_consumers[consumer_id] = {
+            session_create_time = time.time()
+            consumer_info = {
                 "cookie": cookie_value,
-                "requests": 0
+                "sessionCreateTime": session_create_time,
+                "sessionExpirationTime":
+                    ((session_create_time * 1000) +
+                     int(body["configs"]["session.timeout.ms"])) // 1000
             }
+            LOG.debug("New consumer info: %s",
+                      json.dumps(consumer_info, indent=4, sort_keys=True))
+            consumer_service._active_consumers[consumer_id] = consumer_info
         response = 200, {"consumerInstanceId": consumer_id}, \
                    {"Set-Cookie": "{}={}".format(COOKIE_NAME, cookie_value)}
     else:

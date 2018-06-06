@@ -177,11 +177,27 @@ class Test(unittest.TestCase):
                               auth=auth,
                               consumer_group=self.consumer_group,
                               retry_on_fail=False,
-                              verify="cabundle.crt")
+                              verify="cabundle.crt",
+                              timeout=60,
+                              offset="earliest")
 
             self.assertEqual(channel._session.verify, "cabundle.crt")
 
             channel.commit()  # forcing early exit due to no records to commit
+
+            channel.create()
+            session.return_value.request.assert_called_with(
+                "post",
+                "http://localhost/databus/consumer-service/v1/consumers",
+                json={
+                    "consumerGroup": self.consumer_group,
+                    "configs": {
+                        "session.timeout.ms": "60000",
+                        "enable.auto.commit": "false",
+                        "auto.offset.reset": "earliest"
+                    }
+                }
+            )
 
             channel.subscribe(["topic1", "topic2"])
             session.return_value.request.assert_called_with(

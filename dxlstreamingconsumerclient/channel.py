@@ -116,7 +116,7 @@ class Channel(object):
                  consumer_group,
                  path_prefix='/databus/consumer-service/v1',
                  offset='latest',  # earliest
-                 timeout=300000,
+                 timeout=300,
                  retry_on_fail=True,
                  verify=""):
         """
@@ -131,7 +131,7 @@ class Channel(object):
         :param str offset: Offset for the next record to retrieve from the
             consumer service for the new :meth:`consume` call. Must be one
             of 'latest', 'earliest', or 'none'.
-        :param int timeout: Channel session timeout (in milliseconds).
+        :param int timeout: Channel session timeout (in seconds).
         :param bool retry_on_fail: Whether or not the channel will
             automatically retry a call which failed due to a temporary error.
         :param str verify: Path to a CA bundle file containing certificates of
@@ -240,7 +240,7 @@ class Channel(object):
         payload = {
             'consumerGroup': self._consumer_group,
             'configs': {
-                'session.timeout.ms': str(self._timeout),
+                'session.timeout.ms': str(self._timeout * 1000),
                 'enable.auto.commit': 'false',  # this has to be false for now
                 'auto.offset.reset': self._offset
             }
