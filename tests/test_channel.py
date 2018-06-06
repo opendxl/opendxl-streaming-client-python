@@ -2,10 +2,28 @@ from __future__ import absolute_import
 import unittest
 import base64
 import json
-from mock import patch, MagicMock
+from mock import call, patch, MagicMock
 from dxlstreamingconsumerclient.channel import \
     (ConsumerError, Channel, ChannelAuth)
 from dxlstreamingconsumerclient.error import TemporaryError
+
+
+def create_record(topic, payload, partition, offset):
+    return {
+        "routingData": {
+            "topic": topic
+        },
+        "message": {
+            "payload": base64.b64encode(json.dumps(payload).encode())
+        },
+        "partition": partition,
+        "offset": offset
+    }
+
+
+def create_records(records):
+    return {"records": records}
+
 
 class Test(unittest.TestCase):
     def setUp(self):
@@ -19,7 +37,7 @@ class Test(unittest.TestCase):
 
     def test_retry_condition(self):
         auth = ChannelAuth(self.url, self.username, self.password)
-        with patch('requests.Session'):
+        with patch("requests.Session"):
             channel = Channel(self.url,
                               auth=auth,
                               consumer_group=self.consumer_group)
@@ -31,36 +49,36 @@ class Test(unittest.TestCase):
         auth = ChannelAuth(self.url, self.username, self.password)
         req = MagicMock()
         req.headers = {}
-        with patch('requests.get') as req_get:
+        with patch("requests.get") as req_get:
             req_get.return_value = MagicMock()
             req_get.return_value.status_code = 200
 
             original_token = "1234567890"
             req_get.return_value.json = MagicMock(
-                return_value={'AuthorizationToken': original_token})
+                return_value={"AuthorizationToken": original_token})
 
             req = auth(req)
             self.assertIsNotNone(req)
-            self.assertEqual(req.headers['Authorization'],
-                             'Bearer {}'.format(original_token))
+            self.assertEqual(req.headers["Authorization"],
+                             "Bearer {}".format(original_token))
 
             new_token = "ABCDEFGHIJ"
             req_get.return_value.json = MagicMock(
-                return_value={'AuthorizationToken': new_token})
+                return_value={"AuthorizationToken": new_token})
 
             # Even though the token that would be returned for a login attempt
             # has changed, the original token should be returned because it
             # was cached on the auth object.
             req = auth(req)
             self.assertIsNotNone(req)
-            self.assertEqual(req.headers['Authorization'],
-                             'Bearer {}'.format(original_token))
+            self.assertEqual(req.headers["Authorization"],
+                             "Bearer {}".format(original_token))
 
             res = MagicMock()
             res.status_code = 403
             res.request.headers = {}
 
-            with patch('requests.Session') as session:
+            with patch("requests.Session") as session:
                 channel = Channel(self.url,
                                   auth=auth,
                                   consumer_group=self.consumer_group)
@@ -71,7 +89,7 @@ class Test(unittest.TestCase):
                 create_200_mock = MagicMock()
                 create_200_mock.status_code = 200
                 create_200_mock.json = MagicMock(
-                    return_value={'consumerInstanceId': 1234},
+                    return_value={"consumerInstanceId": 1234},
                 )
 
                 self.assertIsNone(channel._consumer_id)
@@ -89,8 +107,8 @@ class Test(unittest.TestCase):
                 # call.
                 req = auth(req)
                 self.assertIsNotNone(req)
-                self.assertEqual(req.headers['Authorization'],
-                                 'Bearer {}'.format(new_token))
+                self.assertEqual(req.headers["Authorization"],
+                                 "Bearer {}".format(new_token))
                 self.assertEqual(auth._token, new_token)
 
     def test_main(self):
@@ -101,7 +119,7 @@ class Test(unittest.TestCase):
             "entity": "case",
             "type": "creation",
             "tenant-id": "7af4746a-63be-45d8-9fb5-5f58bf909c25",
-            "user": "jmdacruz",
+            "user": "johndoe",
             "origin": "",
             "nature": "",
             "timestamp": "",
@@ -116,16 +134,14 @@ class Test(unittest.TestCase):
             }
         }
 
-        encoded_event = base64.b64encode(json.dumps(case_event).encode())
-
-        with patch('requests.Session') as session:
+        with patch("requests.Session") as session:
             session.return_value = MagicMock()  # self._session
             session.return_value.request = MagicMock()
 
             create_mock = MagicMock()
             create_mock.status_code = 200
             create_mock.json = MagicMock(
-                return_value={'consumerInstanceId': 1234})
+                return_value={"consumerInstanceId": 1234})
 
             subscr_mock = MagicMock()
             subscr_mock.status_code = 204
@@ -133,18 +149,10 @@ class Test(unittest.TestCase):
             consum_mock = MagicMock()
             consum_mock.status_code = 200
             consum_mock.json = MagicMock(
-                return_value={'records': [
-                    {
-                        'routingData': {
-                            'topic': 'foo-topic'
-                        },
-                        'message': {
-                            'payload': encoded_event
-                        },
-                        'partition': 1,
-                        'offset': 1
-                    }
-                ]})
+                return_value=create_records([
+                    create_record("foo-topic", case_event,
+                                  partition=1, offset=1)
+                ]))
 
             commit_consumer_error_mock = MagicMock()
             commit_consumer_error_mock.status_code = 404
@@ -183,8 +191,8 @@ class Test(unittest.TestCase):
             )
 
             records = channel.consume()
-            self.assertEqual(records[0]['id'],
-                             'a45a03de-5c3d-452a-8a37-f68be954e784')
+            self.assertEqual(records[0]["id"],
+                             "a45a03de-5c3d-452a-8a37-f68be954e784")
 
             with self.assertRaises(ConsumerError):
                 channel.commit()
@@ -214,3 +222,125 @@ class Test(unittest.TestCase):
         session.return_value.request.reset_mock()
 
         channel.delete()  # trigger early exit
+
+    def test_run(self):
+        auth = ChannelAuth(self.url, self.username, self.password)
+
+        record_1_payload = {"testing": "record_1"}
+        record_2_payload = {"testing": "record_2"}
+
+        record_1 = create_record("topic1", record_1_payload,
+                                 partition=1, offset=1)
+        record_2 = create_record("topic2", record_2_payload,
+                                 partition=1, offset=2)
+        first_records_group = create_records([record_1, record_2])
+
+        record_3_payload = {"testing": "record_3"}
+        record_3 = create_record("topic3", record_3_payload,
+                                 partition=2, offset=3)
+        second_records_group = create_records([record_3])
+
+        third_records_group = create_records([])
+
+        expected_payloads_received = [
+            [record_1_payload, record_2_payload],
+            [record_3_payload],
+            []
+        ]
+
+        expected_calls = [
+            call("get",
+                 "http://localhost/databus/consumer-service/v1/consumers/1234/records"),
+            call("post",
+                 "http://localhost/databus/consumer-service/v1/consumers/1234/offsets",
+                 json={
+                     "offsets": [
+                         {"topic": "topic1", "partition": 1, "offset": 1},
+                         {"topic": "topic2", "partition": 1, "offset": 2}
+                     ]}),
+            call("get",
+                 "http://localhost/databus/consumer-service/v1/consumers/1234/records"),
+            call("post",
+                 "http://localhost/databus/consumer-service/v1/consumers/1234/offsets",
+                 json={
+                     "offsets": [
+                         {"topic": "topic3", "partition": 2, "offset": 3}
+                     ]}),
+            call("get",
+                 "http://localhost/databus/consumer-service/v1/consumers/1234/records")
+        ]
+
+        with patch("requests.Session") as session:
+            session.return_value = MagicMock()  # self._session
+            session.return_value.request = MagicMock()
+
+            create_mock = MagicMock()
+            create_mock.status_code = 200
+            create_mock.json = MagicMock(
+                return_value={"consumerInstanceId": 1234})
+
+            subscr_mock = MagicMock()
+            subscr_mock.status_code = 204
+
+            consume_1_mock = MagicMock()
+            consume_1_mock.status_code = 200
+            consume_1_mock.json = MagicMock(
+                return_value=first_records_group)
+
+            consume_2_mock = MagicMock()
+            consume_2_mock.status_code = 200
+            consume_2_mock.json = MagicMock(
+                return_value=second_records_group)
+
+            consume_3_mock = MagicMock()
+            consume_3_mock.status_code = 200
+            consume_3_mock.json = MagicMock(
+                return_value=third_records_group)
+
+            commit_mock = MagicMock()
+            commit_mock.status_code = 204
+
+            session.return_value.request.side_effect = [
+                create_mock, subscr_mock,
+                consume_1_mock, commit_mock,
+                consume_2_mock, commit_mock,
+                consume_3_mock, commit_mock]
+
+            channel = Channel(self.url,
+                              auth=auth,
+                              consumer_group=self.consumer_group,
+                              retry_on_fail=False)
+
+            channel.subscribe(["topic1", "topic2", "topic3"])
+
+            payloads_received = []
+            def on_consume(payloads):
+                payloads_received.append(payloads)
+                # Return True (continue consuming) only if at least one
+                # payload dictionary was supplied in the payloads parameter.
+                # Return False to terminate the run call
+                # when no additional payloads are available to consume.
+                return len(payloads) > 0
+
+            session.return_value.request.reset_mock()
+            channel.run(on_consume, wait_between_queries=0)
+
+            session.return_value.request.assert_has_calls(expected_calls)
+            self.assertEqual(payloads_received, expected_payloads_received)
+
+            # Setup the next consume call to return a 404 error
+            # (consumer not found)
+            consume_not_found_mock = MagicMock()
+            consume_not_found_mock.status_code = 404
+
+            session.return_value.request.reset_mock()
+            session.return_value.request.side_effect = [
+                consume_not_found_mock
+            ]
+
+            channel.run(on_consume, wait_between_queries=0)
+
+            # run call should return without invoking the
+            # on_consume callback since the consume() call should have
+            # returned a "not found" (404) error (with no records)
+            self.assertEqual(len(payloads_received), 3)

@@ -9,6 +9,7 @@ import base64
 import json
 import logging
 import threading
+import time
 import warnings
 import requests
 from retrying import Retrying
@@ -16,6 +17,7 @@ from furl import furl
 from .auth import login
 from .error import TemporaryError, PermanentError
 from ._compat import is_string
+
 
 _RETRY_WAIT_EXPONENTIAL_MULTIPLIER = 1000
 _RETRY_WAIT_EXPONENTIAL_MAX = 10000
@@ -105,6 +107,8 @@ class Channel(object):
     resources associated with the channel are properly cleaned up when the block
     is exited.
     """
+
+    _DEFAULT_WAIT_BETWEEN_QUERIES = 5
 
     def __init__(self, base, auth,
                  consumer_group,
@@ -298,6 +302,9 @@ class Channel(object):
             :attr:`retry_on_fail` is set to False.
         :raise PermanentError: if the channel has been destroyed or the
             channel has not been subscribed to any topics.
+        :return: A list of the payloads (decoded as dictionaries) from the
+            records returned from the server.
+        :rtype: list(dict)
         """
         if not self._subscribed:
             raise PermanentError("Channel is not subscribed to any topic")
@@ -367,6 +374,45 @@ class Channel(object):
             raise TemporaryError(
                 "Unexpected temporary error {}: {}".format(
                     res.status_code, res.text))
+
+    def run(self, consume_callback,
+            wait_between_queries=_DEFAULT_WAIT_BETWEEN_QUERIES):
+        """
+        Repeatedly consume records from the subscribed topics. The supplied
+        ``consume_callback`` is invoked with a ``list`` containing each payload
+        (as a dictionary) extracted from its corresponding record.
+
+        The ``consume_callback`` should return a value of ``True`` in order for
+        this function to continue consuming additional records. For a return
+        value of ``False`` or no return value, no additional records will be
+        consumed and this function will return.
+
+        This function will stop consuming records and will return if a
+        :class:`ConsumerError` is raised during a consume attempt - for example,
+        if a token created for the consumer has been revoked by the server.
+
+        :param consume_callback: Callable which is invoked with a list of
+            payloads from records which have been consumed.
+        :param int wait_between_queries: Number of seconds to wait between
+            calls to consume records.
+        :raise PermanentError: if the channel has been destroyed.
+        """
+        if not consume_callback:
+            raise PermanentError("consume_callback not provided")
+
+        continue_loop = True
+        while continue_loop:
+            try:
+                payloads = self.consume()
+                continue_loop = consume_callback(payloads)
+                # Commit the offsets for the records which were just consumed.
+                self.commit()
+                time.sleep(wait_between_queries)
+            except ConsumerError as exp:
+                # This exception could be raised if the consumer has been
+                # removed.
+                logging.error("Resetting consumer loop: %s", exp)
+                continue_loop = False
 
     def delete(self):
         """

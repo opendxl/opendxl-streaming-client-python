@@ -58,7 +58,7 @@ DEFAULT_RECORDS = [
                 "entity": "case",
                 "type": "creation",
                 "tenant-id": "7af4746a-63be-45d8-9fb5-5f58bf909c25",
-                "user": "jmdacruz",
+                "user": "johndoe",
                 "origin": "",
                 "nature": "",
                 "timestamp": "",

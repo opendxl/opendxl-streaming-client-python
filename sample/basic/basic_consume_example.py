@@ -1,11 +1,9 @@
 from __future__ import absolute_import
 import json
 import os
-import signal
 import sys
-import time
 
-from dxlstreamingconsumerclient.channel import Channel, ChannelAuth, ConsumerError
+from dxlstreamingconsumerclient.channel import Channel, ChannelAuth
 
 root_dir = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(root_dir + "/../..")
@@ -31,10 +29,6 @@ CHANNEL_TOPIC_SUBSCRIPTIONS = ["case-mgmt-events"]
 #  certificate is not validated.
 VERIFY_CERTIFICATE_BUNDLE = ""
 
-# This controls the amount of time that the sample waits between attempts
-# to consume records from the consumer service.
-WAIT_BETWEEN_QUERIES = 5
-
 # Create a new channel object
 with Channel(CHANNEL_URL,
              auth=ChannelAuth(CHANNEL_URL,
@@ -43,16 +37,22 @@ with Channel(CHANNEL_URL,
                               verify=VERIFY_CERTIFICATE_BUNDLE),
              consumer_group=CHANNEL_CONSUMER_GROUP,
              verify=VERIFY_CERTIFICATE_BUNDLE) as channel:
-    # Register a signal handler to be invoked when a user interrupts the
-    # running sample (for example, by pressing CTRL-C)
-    def signal_handler(*_):
-        channel.retry_on_fail = False
 
-    signal.signal(signal.SIGTERM, signal_handler)
-    signal.signal(signal.SIGINT, signal_handler)
+    # Create a function which will be called back upon by the
+    # 'run' method (see below) when records are received from the
+    # channel.
+    def consume_callback(payloads):
+        # Print the payloads which were received. 'payloads' is a list of
+        # dictionary objects extracted from the records received from the
+        # channel.
+        logger.info("Consumed payloads: \n%s",
+                    json.dumps(payloads, indent=4, sort_keys=True))
+        # Return 'True' in order for the 'run' call
+        # to continue attempting to consume records.
+        return True
 
     logger.info("Starting event loop")
-    while channel.retry_on_fail:
+    while True:
         # Create a new consumer on the consumer group provided when the channel
         # was created above.
         channel.create()
@@ -60,21 +60,8 @@ with Channel(CHANNEL_URL,
         # Subscribe the consumer to a list of topics.
         channel.subscribe(CHANNEL_TOPIC_SUBSCRIPTIONS)
 
-        consumer_error = False
-        while not consumer_error and channel.retry_on_fail:
-            try:
-                # Repeatedly consume records from the subscribed topics - until
-                # any errors or process interruptions occur.
-                records = channel.consume()
-                logger.info("Consumed records: \n%s",
-                            json.dumps(records, indent=4, sort_keys=True))
-                # Commit the offsets for the records which were just consumed.
-                channel.commit()
-                time.sleep(WAIT_BETWEEN_QUERIES)
-            except ConsumerError as exp:
-                # This exception could be raised if the consumer has been
-                # removed. If the sample process has not been interrupted,
-                # a new consumer will be created and the attempt to consume
-                # records for the consumer will be repeated.
-                logger.error("Resetting consumer loop: %s", exp)
-                consumer_error = True
+        # Consume records until/if the consumer service returns an error
+        # for the consumer - in which case this example will repeat the loop
+        # (creating a new consumer, subscribing the new consumer, and
+        # consuming additional records).
+        channel.run(consume_callback)
