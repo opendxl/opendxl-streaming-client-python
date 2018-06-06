@@ -49,7 +49,7 @@
 service.</p>
 <dl class="class">
 <dt id="dxlstreamingconsumerclient.channel.Channel">
-<em class="property">class </em><code class="descclassname">dxlstreamingconsumerclient.channel.</code><code class="descname">Channel</code><span class="sig-paren">(</span><em>base</em>, <em>auth</em>, <em>consumer_group</em>, <em>path_prefix='/databus/consumer-service/v1'</em>, <em>offset='latest'</em>, <em>timeout=300000</em>, <em>retry_on_fail=True</em>, <em>verify=''</em><span class="sig-paren">)</span><a class="headerlink" href="#dxlstreamingconsumerclient.channel.Channel" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">dxlstreamingconsumerclient.channel.</code><code class="descname">Channel</code><span class="sig-paren">(</span><em>base</em>, <em>auth</em>, <em>consumer_group</em>, <em>path_prefix='/databus/consumer-service/v1'</em>, <em>offset='latest'</em>, <em>timeout=300</em>, <em>retry_on_fail=True</em>, <em>verify=''</em><span class="sig-paren">)</span><a class="headerlink" href="#dxlstreamingconsumerclient.channel.Channel" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>The <a class="reference internal" href="#dxlstreamingconsumerclient.channel.Channel" title="dxlstreamingconsumerclient.channel.Channel"><code class="xref py py-class docutils literal notranslate"><span class="pre">Channel</span></code></a> class is responsible for all communication with the
 consumer service.</p>
@@ -83,7 +83,7 @@ consumer to.</li>
 <li><strong>offset</strong> (<em>str</em>) -- Offset for the next record to retrieve from the
 consumer service for the new <a class="reference internal" href="#dxlstreamingconsumerclient.channel.Channel.consume" title="dxlstreamingconsumerclient.channel.Channel.consume"><code class="xref py py-meth docutils literal notranslate"><span class="pre">consume()</span></code></a> call. Must be one
 of 'latest', 'earliest', or 'none'.</li>
-<li><strong>timeout</strong> (<em>int</em>) -- Channel session timeout (in milliseconds).</li>
+<li><strong>timeout</strong> (<em>int</em>) -- Channel session timeout (in seconds).</li>
 <li><strong>retry_on_fail</strong> (<em>bool</em>) -- Whether or not the channel will
 automatically retry a call which failed due to a temporary error.</li>
 <li><strong>verify</strong> (<em>str</em>) -- Path to a CA bundle file containing certificates of
