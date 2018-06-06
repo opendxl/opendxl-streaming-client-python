@@ -108,7 +108,9 @@ class Channel(object):
     is exited.
     """
 
-    _DEFAULT_WAIT_BETWEEN_QUERIES = 5
+    # Default number of seconds to wait between consume queries made to the
+    # consumer service
+    _DEFAULT_WAIT_BETWEEN_QUERIES = 30
 
     def __init__(self, base, auth,
                  consumer_group,

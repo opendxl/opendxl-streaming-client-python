@@ -64,4 +64,4 @@ with Channel(CHANNEL_URL,
         # for the consumer - in which case this example will repeat the loop
         # (creating a new consumer, subscribing the new consumer, and
         # consuming additional records).
-        channel.run(consume_callback)
+        channel.run(consume_callback, wait_between_queries=5)
