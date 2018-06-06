@@ -54,8 +54,8 @@ class ChannelAuth(requests.auth.AuthBase):
         Constructor parameters:
 
         :param str base: Base URL to forward authentication requests to.
-        :param str username: User name to supply for request auth.
-        :param str password: Password to supply for request auth.
+        :param str username: User name to supply for request authentication.
+        :param str password: Password to supply for request authentication.
         :param str verify: Path to a CA bundle file containing certificates of
             trusted CAs. The CA bundle is used to validate that the certificate
             of the authentication server being connected to was signed by a
