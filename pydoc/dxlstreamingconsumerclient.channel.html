@@ -1,0 +1,390 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>dxlstreamingconsumerclient.channel module &#8212; OpenDXL Streaming Consumer Client Library 0.1.0 documentation</title>
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="dxlstreamingconsumerclient.error module" href="dxlstreamingconsumerclient.error.html" />
+    <link rel="prev" title="dxlstreamingconsumerclient.auth module" href="dxlstreamingconsumerclient.auth.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="dxlstreamingconsumerclient.error.html" title="dxlstreamingconsumerclient.error module"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="dxlstreamingconsumerclient.auth.html" title="dxlstreamingconsumerclient.auth module"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">OpenDXL Streaming Consumer Client Library 0.1.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="dxlstreamingconsumerclient.html" accesskey="U">dxlstreamingconsumerclient package</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="module-dxlstreamingconsumerclient.channel">
+<span id="dxlstreamingconsumerclient-channel-module"></span><h1>dxlstreamingconsumerclient.channel module<a class="headerlink" href="#module-dxlstreamingconsumerclient.channel" title="Permalink to this headline">¶</a></h1>
+<p>Contains the <a class="reference internal" href="#dxlstreamingconsumerclient.channel.Channel" title="dxlstreamingconsumerclient.channel.Channel"><code class="xref py py-class docutils literal notranslate"><span class="pre">Channel</span></code></a> class, which is used to connect to the consumer
+service.</p>
+<dl class="class">
+<dt id="dxlstreamingconsumerclient.channel.Channel">
+<em class="property">class </em><code class="descclassname">dxlstreamingconsumerclient.channel.</code><code class="descname">Channel</code><span class="sig-paren">(</span><em>base</em>, <em>auth</em>, <em>consumer_group</em>, <em>path_prefix='/databus/consumer-service/v1'</em>, <em>offset='latest'</em>, <em>timeout=300000</em>, <em>retry_on_fail=True</em>, <em>verify=''</em><span class="sig-paren">)</span><a class="headerlink" href="#dxlstreamingconsumerclient.channel.Channel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>The <a class="reference internal" href="#dxlstreamingconsumerclient.channel.Channel" title="dxlstreamingconsumerclient.channel.Channel"><code class="xref py py-class docutils literal notranslate"><span class="pre">Channel</span></code></a> class is responsible for all communication with the
+consumer service.</p>
+<p>The following example demonstrates the creation of a <a class="reference internal" href="#dxlstreamingconsumerclient.channel.Channel" title="dxlstreamingconsumerclient.channel.Channel"><code class="xref py py-class docutils literal notranslate"><span class="pre">Channel</span></code></a>
+instance and creating a consumer for the consumer group:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create the channel</span>
+<span class="k">with</span> <span class="n">Channel</span><span class="p">(</span><span class="s2">&quot;http://channel-server&quot;</span><span class="p">,</span>
+             <span class="n">auth</span><span class="o">=</span><span class="n">ChannelAuth</span><span class="p">(</span><span class="s2">&quot;http://channel-server,</span>
+                <span class="s2">&quot;user&quot;</span><span class="p">,</span> <span class="s2">&quot;password&quot;</span><span class="p">),</span>
+             <span class="n">consumer_group</span><span class="o">=</span><span class="s2">&quot;thegroup&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">channel</span><span class="p">:</span>
+    <span class="c1"># Create a new consumer on the consumer group</span>
+    <span class="n">channel</span><span class="o">.</span><span class="n">create</span><span class="p">()</span>
+</pre></div>
+</div>
+<p><strong>NOTE:</strong> The preferred way to construct the channel is via the Python
+&quot;with&quot; statement as shown above. The &quot;with&quot; statement ensures that
+resources associated with the channel are properly cleaned up when the block
+is exited.</p>
+<p>Constructor parameters:</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>base</strong> (<em>str</em>) -- Base URL at which the consumer service resides.</li>
+<li><strong>auth</strong> (<em>requests.auth.AuthBase</em>) -- Authentication object to use
+for channel requests.</li>
+<li><strong>consumer_group</strong> (<em>str</em>) -- Consumer group to subscribe the channel
+consumer to.</li>
+<li><strong>path_prefix</strong> (<em>str</em>) -- Path to append to consumer service requests.</li>
+<li><strong>offset</strong> (<em>str</em>) -- Offset for the next record to retrieve from the
+consumer service for the new <a class="reference internal" href="#dxlstreamingconsumerclient.channel.Channel.consume" title="dxlstreamingconsumerclient.channel.Channel.consume"><code class="xref py py-meth docutils literal notranslate"><span class="pre">consume()</span></code></a> call. Must be one
+of 'latest', 'earliest', or 'none'.</li>
+<li><strong>timeout</strong> (<em>int</em>) -- Channel session timeout (in milliseconds).</li>
+<li><strong>retry_on_fail</strong> (<em>bool</em>) -- Whether or not the channel will
+automatically retry a call which failed due to a temporary error.</li>
+<li><strong>verify</strong> (<em>str</em>) -- Path to a CA bundle file containing certificates of
+trusted CAs. The CA bundle is used to validate that the certificate
+of the authentication server being connected to was signed by a
+valid authority. If set to an empty string, the server certificate
+is not validated.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="dxlstreamingconsumerclient.channel.Channel.commit">
+<code class="descname">commit</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#dxlstreamingconsumerclient.channel.Channel.commit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Commits the record offsets to the channel</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><ul class="first last simple">
+<li><a class="reference internal" href="#dxlstreamingconsumerclient.channel.ConsumerError" title="dxlstreamingconsumerclient.channel.ConsumerError"><strong>ConsumerError</strong></a> -- if the consumer associated with the channel
+does not exist on the server and <a class="reference internal" href="#dxlstreamingconsumerclient.channel.Channel.retry_on_fail" title="dxlstreamingconsumerclient.channel.Channel.retry_on_fail"><code class="xref py py-attr docutils literal notranslate"><span class="pre">retry_on_fail</span></code></a> is set
+to False.</li>
+<li><a class="reference internal" href="dxlstreamingconsumerclient.error.html#dxlstreamingconsumerclient.error.TemporaryError" title="dxlstreamingconsumerclient.error.TemporaryError"><strong>TemporaryError</strong></a> -- if the commit attempt fails and
+<a class="reference internal" href="#dxlstreamingconsumerclient.channel.Channel.retry_on_fail" title="dxlstreamingconsumerclient.channel.Channel.retry_on_fail"><code class="xref py py-attr docutils literal notranslate"><span class="pre">retry_on_fail</span></code></a> is set to False.</li>
+<li><a class="reference internal" href="dxlstreamingconsumerclient.error.html#dxlstreamingconsumerclient.error.PermanentError" title="dxlstreamingconsumerclient.error.PermanentError"><strong>PermanentError</strong></a> -- if the channel has been destroyed.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="dxlstreamingconsumerclient.channel.Channel.consume">
+<code class="descname">consume</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#dxlstreamingconsumerclient.channel.Channel.consume" title="Permalink to this definition">¶</a></dt>
+<dd><p>Consumes records from all the subscribed topics</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><ul class="first simple">
+<li><a class="reference internal" href="#dxlstreamingconsumerclient.channel.ConsumerError" title="dxlstreamingconsumerclient.channel.ConsumerError"><strong>ConsumerError</strong></a> -- if the consumer associated with the channel
+does not exist on the server and <a class="reference internal" href="#dxlstreamingconsumerclient.channel.Channel.retry_on_fail" title="dxlstreamingconsumerclient.channel.Channel.retry_on_fail"><code class="xref py py-attr docutils literal notranslate"><span class="pre">retry_on_fail</span></code></a> is set
+to False.</li>
+<li><a class="reference internal" href="dxlstreamingconsumerclient.error.html#dxlstreamingconsumerclient.error.TemporaryError" title="dxlstreamingconsumerclient.error.TemporaryError"><strong>TemporaryError</strong></a> -- if the consume attempt fails and
+<a class="reference internal" href="#dxlstreamingconsumerclient.channel.Channel.retry_on_fail" title="dxlstreamingconsumerclient.channel.Channel.retry_on_fail"><code class="xref py py-attr docutils literal notranslate"><span class="pre">retry_on_fail</span></code></a> is set to False.</li>
+<li><a class="reference internal" href="dxlstreamingconsumerclient.error.html#dxlstreamingconsumerclient.error.PermanentError" title="dxlstreamingconsumerclient.error.PermanentError"><strong>PermanentError</strong></a> -- if the channel has been destroyed or the
+channel has not been subscribed to any topics.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">A list of the payloads (decoded as dictionaries) from the
+records returned from the server.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">list(dict)</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="dxlstreamingconsumerclient.channel.Channel.create">
+<code class="descname">create</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#dxlstreamingconsumerclient.channel.Channel.create" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a new consumer on the consumer group</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><ul class="first last simple">
+<li><a class="reference internal" href="dxlstreamingconsumerclient.error.html#dxlstreamingconsumerclient.error.TemporaryError" title="dxlstreamingconsumerclient.error.TemporaryError"><strong>TemporaryError</strong></a> -- if the creation attempt fails and
+<a class="reference internal" href="#dxlstreamingconsumerclient.channel.Channel.retry_on_fail" title="dxlstreamingconsumerclient.channel.Channel.retry_on_fail"><code class="xref py py-attr docutils literal notranslate"><span class="pre">retry_on_fail</span></code></a> is set to False.</li>
+<li><a class="reference internal" href="dxlstreamingconsumerclient.error.html#dxlstreamingconsumerclient.error.PermanentError" title="dxlstreamingconsumerclient.error.PermanentError"><strong>PermanentError</strong></a> -- if the channel has been destroyed.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="dxlstreamingconsumerclient.channel.Channel.delete">
+<code class="descname">delete</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#dxlstreamingconsumerclient.channel.Channel.delete" title="Permalink to this definition">¶</a></dt>
+<dd><p>Deletes the consumer from the consumer group</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><a class="reference internal" href="dxlstreamingconsumerclient.error.html#dxlstreamingconsumerclient.error.TemporaryError" title="dxlstreamingconsumerclient.error.TemporaryError"><strong>TemporaryError</strong></a> -- if the delete attempt fails.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="dxlstreamingconsumerclient.channel.Channel.destroy">
+<code class="descname">destroy</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#dxlstreamingconsumerclient.channel.Channel.destroy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Destroys the channel (releases all associated resources).</p>
+<p><strong>NOTE:</strong> Once the method has been invoked, no other calls should be
+made to the channel.</p>
+<p>Also note that this method should rarely be called directly. Instead,
+the preferred usage of the channel is via a Python &quot;with&quot; statement as
+shown below:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create the channel</span>
+<span class="k">with</span> <span class="n">Channel</span><span class="p">(</span><span class="s2">&quot;http://channel-server&quot;</span><span class="p">,</span>
+             <span class="n">auth</span><span class="o">=</span><span class="n">ChannelAuth</span><span class="p">(</span><span class="s2">&quot;http://channel-server,</span>
+                 <span class="s2">&quot;user&quot;</span><span class="p">,</span> <span class="s2">&quot;password&quot;</span><span class="p">),</span>
+             <span class="n">consumer_group</span><span class="o">=</span><span class="s2">&quot;thegroup&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">channel</span><span class="p">:</span>
+    <span class="c1"># Create a new consumer on the consumer group</span>
+    <span class="n">channel</span><span class="o">.</span><span class="n">create</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>The &quot;with&quot; statement ensures that resources associated with the channel
+are properly cleaned up when the block is exited (the <a class="reference internal" href="#dxlstreamingconsumerclient.channel.Channel.destroy" title="dxlstreamingconsumerclient.channel.Channel.destroy"><code class="xref py py-func docutils literal notranslate"><span class="pre">destroy()</span></code></a>
+method is invoked).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><a class="reference internal" href="dxlstreamingconsumerclient.error.html#dxlstreamingconsumerclient.error.TemporaryError" title="dxlstreamingconsumerclient.error.TemporaryError"><strong>TemporaryError</strong></a> -- if a consumer has previously been created for
+the channel but an attempt to delete the consumer from the
+channel fails.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="dxlstreamingconsumerclient.channel.Channel.reset">
+<code class="descname">reset</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#dxlstreamingconsumerclient.channel.Channel.reset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Resets local consumer data stored for the channel.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="dxlstreamingconsumerclient.channel.Channel.retry_on_fail">
+<code class="descname">retry_on_fail</code><a class="headerlink" href="#dxlstreamingconsumerclient.channel.Channel.retry_on_fail" title="Permalink to this definition">¶</a></dt>
+<dd><p>Whether or not the channel will automatically retry a call which
+failed due to a temporary error.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="dxlstreamingconsumerclient.channel.Channel.run">
+<code class="descname">run</code><span class="sig-paren">(</span><em>consume_callback</em>, <em>wait_between_queries=5</em><span class="sig-paren">)</span><a class="headerlink" href="#dxlstreamingconsumerclient.channel.Channel.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Repeatedly consume records from the subscribed topics. The supplied
+<code class="docutils literal notranslate"><span class="pre">consume_callback</span></code> is invoked with a <code class="docutils literal notranslate"><span class="pre">list</span></code> containing each payload
+(as a dictionary) extracted from its corresponding record.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">consume_callback</span></code> should return a value of <code class="docutils literal notranslate"><span class="pre">True</span></code> in order for
+this function to continue consuming additional records. For a return
+value of <code class="docutils literal notranslate"><span class="pre">False</span></code> or no return value, no additional records will be
+consumed and this function will return.</p>
+<p>This function will stop consuming records and will return if a
+<a class="reference internal" href="#dxlstreamingconsumerclient.channel.ConsumerError" title="dxlstreamingconsumerclient.channel.ConsumerError"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConsumerError</span></code></a> is raised during a consume attempt - for example,
+if a token created for the consumer has been revoked by the server.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>consume_callback</strong> -- Callable which is invoked with a list of
+payloads from records which have been consumed.</li>
+<li><strong>wait_between_queries</strong> (<em>int</em>) -- Number of seconds to wait between
+calls to consume records.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last"><a class="reference internal" href="dxlstreamingconsumerclient.error.html#dxlstreamingconsumerclient.error.PermanentError" title="dxlstreamingconsumerclient.error.PermanentError"><strong>PermanentError</strong></a> -- if the channel has been destroyed.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="dxlstreamingconsumerclient.channel.Channel.subscribe">
+<code class="descname">subscribe</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#dxlstreamingconsumerclient.channel.Channel.subscribe" title="Permalink to this definition">¶</a></dt>
+<dd><p>Subscribes the consumer to a list of topics</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>topics</strong> (<em>str</em><em> or </em><em>list</em><em>(</em><em>str</em><em>)</em>) -- Topic list.</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><ul class="first last simple">
+<li><a class="reference internal" href="#dxlstreamingconsumerclient.channel.ConsumerError" title="dxlstreamingconsumerclient.channel.ConsumerError"><strong>ConsumerError</strong></a> -- if the consumer associated with the channel
+does not exist on the server and <a class="reference internal" href="#dxlstreamingconsumerclient.channel.Channel.retry_on_fail" title="dxlstreamingconsumerclient.channel.Channel.retry_on_fail"><code class="xref py py-attr docutils literal notranslate"><span class="pre">retry_on_fail</span></code></a> is set
+to False.</li>
+<li><a class="reference internal" href="dxlstreamingconsumerclient.error.html#dxlstreamingconsumerclient.error.TemporaryError" title="dxlstreamingconsumerclient.error.TemporaryError"><strong>TemporaryError</strong></a> -- if the subscription attempt fails and
+<a class="reference internal" href="#dxlstreamingconsumerclient.channel.Channel.retry_on_fail" title="dxlstreamingconsumerclient.channel.Channel.retry_on_fail"><code class="xref py py-attr docutils literal notranslate"><span class="pre">retry_on_fail</span></code></a> is set to False.</li>
+<li><a class="reference internal" href="dxlstreamingconsumerclient.error.html#dxlstreamingconsumerclient.error.PermanentError" title="dxlstreamingconsumerclient.error.PermanentError"><strong>PermanentError</strong></a> -- if the channel has been destroyed.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="dxlstreamingconsumerclient.channel.ChannelAuth">
+<em class="property">class </em><code class="descclassname">dxlstreamingconsumerclient.channel.</code><code class="descname">ChannelAuth</code><span class="sig-paren">(</span><em>base</em>, <em>username</em>, <em>password</em>, <em>verify=''</em><span class="sig-paren">)</span><a class="headerlink" href="#dxlstreamingconsumerclient.channel.ChannelAuth" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">requests.auth.AuthBase</span></code></p>
+<p>Authentication class for use with channel requests.</p>
+<p>Constructor parameters:</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>base</strong> (<em>str</em>) -- Base URL to forward authentication requests to.</li>
+<li><strong>username</strong> (<em>str</em>) -- User name to supply for request authentication.</li>
+<li><strong>password</strong> (<em>str</em>) -- Password to supply for request authentication.</li>
+<li><strong>verify</strong> (<em>str</em>) -- Path to a CA bundle file containing certificates of
+trusted CAs. The CA bundle is used to validate that the certificate
+of the authentication server being connected to was signed by a
+valid authority. If set to an empty string, the server certificate
+is not validated.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="dxlstreamingconsumerclient.channel.ChannelAuth.reset">
+<code class="descname">reset</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#dxlstreamingconsumerclient.channel.ChannelAuth.reset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Purge any credentials cached from a previous authentication.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt id="dxlstreamingconsumerclient.channel.ConsumerError">
+<em class="property">exception </em><code class="descclassname">dxlstreamingconsumerclient.channel.</code><code class="descname">ConsumerError</code><a class="headerlink" href="#dxlstreamingconsumerclient.channel.ConsumerError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="dxlstreamingconsumerclient.error.html#dxlstreamingconsumerclient.error.TemporaryError" title="dxlstreamingconsumerclient.error.TemporaryError"><code class="xref py py-class docutils literal notranslate"><span class="pre">dxlstreamingconsumerclient.error.TemporaryError</span></code></a></p>
+<p>Error raised when a channel operation fails due to the associated consumer
+not being recognized by the consumer service.</p>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="dxlstreamingconsumerclient.auth.html"
+                        title="previous chapter">dxlstreamingconsumerclient.auth module</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="dxlstreamingconsumerclient.error.html"
+                        title="next chapter">dxlstreamingconsumerclient.error module</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/dxlstreamingconsumerclient.channel.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="dxlstreamingconsumerclient.error.html" title="dxlstreamingconsumerclient.error module"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="dxlstreamingconsumerclient.auth.html" title="dxlstreamingconsumerclient.auth module"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">OpenDXL Streaming Consumer Client Library 0.1.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="dxlstreamingconsumerclient.html" >dxlstreamingconsumerclient package</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2018, McAfee LLC.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.4.
+    </div>
+  </body>
+</html>

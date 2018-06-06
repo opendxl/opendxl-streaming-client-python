@@ -1,0 +1,160 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>dxlstreamingconsumerclient.auth module &#8212; OpenDXL Streaming Consumer Client Library 0.1.0 documentation</title>
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="dxlstreamingconsumerclient.channel module" href="dxlstreamingconsumerclient.channel.html" />
+    <link rel="prev" title="dxlstreamingconsumerclient package" href="dxlstreamingconsumerclient.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="dxlstreamingconsumerclient.channel.html" title="dxlstreamingconsumerclient.channel module"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="dxlstreamingconsumerclient.html" title="dxlstreamingconsumerclient package"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">OpenDXL Streaming Consumer Client Library 0.1.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="dxlstreamingconsumerclient.html" accesskey="U">dxlstreamingconsumerclient package</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="module-dxlstreamingconsumerclient.auth">
+<span id="dxlstreamingconsumerclient-auth-module"></span><h1>dxlstreamingconsumerclient.auth module<a class="headerlink" href="#module-dxlstreamingconsumerclient.auth" title="Permalink to this headline">¶</a></h1>
+<p>Authentication APIs</p>
+<dl class="exception">
+<dt id="dxlstreamingconsumerclient.auth.PermanentAuthenticationError">
+<em class="property">exception </em><code class="descclassname">dxlstreamingconsumerclient.auth.</code><code class="descname">PermanentAuthenticationError</code><a class="headerlink" href="#dxlstreamingconsumerclient.auth.PermanentAuthenticationError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="dxlstreamingconsumerclient.error.html#dxlstreamingconsumerclient.error.PermanentError" title="dxlstreamingconsumerclient.error.PermanentError"><code class="xref py py-class docutils literal notranslate"><span class="pre">dxlstreamingconsumerclient.error.PermanentError</span></code></a></p>
+<p>Exception raised when an error occurs during an authentication attempt due to
+the user being unauthorized.</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="dxlstreamingconsumerclient.auth.TemporaryAuthenticationError">
+<em class="property">exception </em><code class="descclassname">dxlstreamingconsumerclient.auth.</code><code class="descname">TemporaryAuthenticationError</code><a class="headerlink" href="#dxlstreamingconsumerclient.auth.TemporaryAuthenticationError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="dxlstreamingconsumerclient.error.html#dxlstreamingconsumerclient.error.TemporaryError" title="dxlstreamingconsumerclient.error.TemporaryError"><code class="xref py py-class docutils literal notranslate"><span class="pre">dxlstreamingconsumerclient.error.TemporaryError</span></code></a></p>
+<p>Exception raised when an unexpected/unknown (but possibly recoverable)
+error occurs during an authentication attempt.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="dxlstreamingconsumerclient.auth.login">
+<code class="descclassname">dxlstreamingconsumerclient.auth.</code><code class="descname">login</code><span class="sig-paren">(</span><em>url</em>, <em>username</em>, <em>password</em>, <em>path_fragment='/identity/v1/login'</em>, <em>verify=''</em><span class="sig-paren">)</span><a class="headerlink" href="#dxlstreamingconsumerclient.auth.login" title="Permalink to this definition">¶</a></dt>
+<dd><p>Make a login request to the supplied login url.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>url</strong> (<em>str</em>) -- Base URL at which to make the request.</li>
+<li><strong>username</strong> (<em>str</em>) -- User name to supply for request authentication.</li>
+<li><strong>password</strong> (<em>str</em>) -- Password to supply for request authentication.</li>
+<li><strong>path_fragment</strong> (<em>str</em>) -- Path to append to the base URL for the request.</li>
+<li><strong>verify</strong> (<em>str</em>) -- Path to a CA bundle file containing certificates of
+trusted CAs. The CA bundle is used to validate that the certificate
+of the authentication server being connected to was signed by a
+valid authority. If set to an empty string, the server certificate
+is not validated.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><ul class="first last simple">
+<li><a class="reference internal" href="#dxlstreamingconsumerclient.auth.TemporaryAuthenticationError" title="dxlstreamingconsumerclient.auth.TemporaryAuthenticationError"><strong>TemporaryAuthenticationError</strong></a> -- if an unexpected (but possibly
+recoverable) authentication error occurs for the request.</li>
+<li><a class="reference internal" href="#dxlstreamingconsumerclient.auth.PermanentAuthenticationError" title="dxlstreamingconsumerclient.auth.PermanentAuthenticationError"><strong>PermanentAuthenticationError</strong></a> -- if the request fails due to the
+user not being authenticated successfully or if the user is
+unauthorized to make the request.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="dxlstreamingconsumerclient.html"
+                        title="previous chapter">dxlstreamingconsumerclient package</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="dxlstreamingconsumerclient.channel.html"
+                        title="next chapter">dxlstreamingconsumerclient.channel module</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/dxlstreamingconsumerclient.auth.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="dxlstreamingconsumerclient.channel.html" title="dxlstreamingconsumerclient.channel module"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="dxlstreamingconsumerclient.html" title="dxlstreamingconsumerclient package"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">OpenDXL Streaming Consumer Client Library 0.1.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="dxlstreamingconsumerclient.html" >dxlstreamingconsumerclient package</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2018, McAfee LLC.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.4.
+    </div>
+  </body>
+</html>

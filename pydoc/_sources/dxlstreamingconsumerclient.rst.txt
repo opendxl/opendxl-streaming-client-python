@@ -1,0 +1,19 @@
+dxlstreamingconsumerclient package
+==================================
+
+Submodules
+----------
+
+.. toctree::
+
+   dxlstreamingconsumerclient.auth
+   dxlstreamingconsumerclient.channel
+   dxlstreamingconsumerclient.error
+
+Module contents
+---------------
+
+.. automodule:: dxlstreamingconsumerclient
+    :members:
+    :undoc-members:
+    :show-inheritance:

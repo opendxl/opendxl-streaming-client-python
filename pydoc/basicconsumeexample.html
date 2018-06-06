@@ -1,0 +1,306 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Basic Consume Example &#8212; OpenDXL Streaming Consumer Client Library 0.1.0 documentation</title>
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="dxlstreamingconsumerclient package" href="dxlstreamingconsumerclient.html" />
+    <link rel="prev" title="Library Installation" href="installation.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="dxlstreamingconsumerclient.html" title="dxlstreamingconsumerclient package"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="installation.html" title="Library Installation"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">OpenDXL Streaming Consumer Client Library 0.1.0 documentation</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="basic-consume-example">
+<h1>Basic Consume Example<a class="headerlink" href="#basic-consume-example" title="Permalink to this headline">¶</a></h1>
+<p>This sample demonstrates how to establish a channel connection to the DXL
+streaming consumer service. Once the connection is established, the sample
+repeatedly consumes and displays available records for the consumer group.</p>
+<div class="section" id="prerequisites">
+<h2>Prerequisites<a class="headerlink" href="#prerequisites" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>A DXL streaming consumer service is available for the sample to connect to.</li>
+<li>Credentials for a consumer are available for use with the sample.</li>
+</ul>
+</div>
+<div class="section" id="setup">
+<h2>Setup<a class="headerlink" href="#setup" title="Permalink to this headline">¶</a></h2>
+<p>Modify the example to include the appropriate settings for the consumer
+service channel:</p>
+<blockquote>
+<div><div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">CHANNEL_URL</span> <span class="o">=</span> <span class="s2">&quot;http://127.0.0.1:50080&quot;</span>
+<span class="n">CHANNEL_USERNAME</span> <span class="o">=</span> <span class="s2">&quot;me&quot;</span>
+<span class="n">CHANNEL_PASSWORD</span> <span class="o">=</span> <span class="s2">&quot;secret&quot;</span>
+<span class="n">CHANNEL_CONSUMER_GROUP</span> <span class="o">=</span> <span class="s2">&quot;sample_consumer_group&quot;</span>
+<span class="n">CHANNEL_TOPIC_SUBSCRIPTIONS</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;case-mgmt-events&quot;</span><span class="p">]</span>
+<span class="c1">#  Path to a CA bundle file containing certificates of trusted CAs. The CA</span>
+<span class="c1">#  bundle is used to validate that the certificate of the server being connected</span>
+<span class="c1">#  to was signed by a valid authority. If set to an empty string, the server</span>
+<span class="c1">#  certificate is not validated.</span>
+<span class="n">VERIFY_CERTIFICATE_BUNDLE</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+</pre></div>
+</div>
+</div></blockquote>
+<p>For testing purposes, you can use the <code class="docutils literal notranslate"><span class="pre">fake_consumer_service</span></code> Python tool
+embedded in the OpenDXL Streaming Consumer Client SDK to start up a local
+consumer service which includes some fake data for a single preconfigured
+consumer group. The initial settings in the example above include the URL,
+credentials, and consumer group used by the <code class="docutils literal notranslate"><span class="pre">fake_consumer_service</span></code>.</p>
+<p>To launch the <code class="docutils literal notranslate"><span class="pre">fake_consumer_service</span></code> tool, run the following command in
+a command window:</p>
+<blockquote>
+<div><div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>python sample/fake_consumer_service.py
+</pre></div>
+</div>
+</div></blockquote>
+<p>Messages like the following should appear in the command window:</p>
+<blockquote>
+<div><div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>INFO:__main__:Starting service
+INFO:__main__:Started service on mycaseserver:50080
+</pre></div>
+</div>
+</div></blockquote>
+</div>
+<div class="section" id="running">
+<h2>Running<a class="headerlink" href="#running" title="Permalink to this headline">¶</a></h2>
+<p>To run this sample execute the <code class="docutils literal notranslate"><span class="pre">sample/basic/basic_consume_example.py</span></code> script
+as follows:</p>
+<blockquote>
+<div><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">sample</span><span class="o">/</span><span class="n">basic</span><span class="o">/</span><span class="n">basic_consume_example</span><span class="o">.</span><span class="n">py</span>
+</pre></div>
+</div>
+</div></blockquote>
+<p>The initial line in the output window should be similar to the following:</p>
+<blockquote>
+<div><div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="m">2018</span>-05-30 <span class="m">17</span>:35:36,743 __main__ - INFO - Starting event loop
+</pre></div>
+</div>
+</div></blockquote>
+<p>As records are received by the sample, the contents of the message payloads
+should be displayed to the output window. Using the <code class="docutils literal notranslate"><span class="pre">fake_consumer_service</span></code>,
+for example, initial payloads similar to the following should appear:</p>
+<blockquote>
+<div><div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="m">2018</span>-05-30 <span class="m">17</span>:35:36,754 __main__ - INFO - Consumed payloads:
+<span class="o">[</span>
+    <span class="o">{</span>
+        <span class="s2">&quot;case&quot;</span>: <span class="o">{</span>
+            <span class="s2">&quot;id&quot;</span>: <span class="s2">&quot;9ab2cebb-6b5f-418b-a15f-df1a9ee213f2&quot;</span>,
+            <span class="s2">&quot;name&quot;</span>: <span class="s2">&quot;A great case full of malware&quot;</span>,
+            <span class="s2">&quot;priority&quot;</span>: <span class="s2">&quot;Low&quot;</span>,
+            <span class="s2">&quot;url&quot;</span>: <span class="s2">&quot;https://mycaseserver.com/#/cases/9ab2cebb-6b5f-418b-a15f-df1a9ee213f2&quot;</span>
+        <span class="o">}</span>,
+        <span class="s2">&quot;entity&quot;</span>: <span class="s2">&quot;case&quot;</span>,
+        <span class="s2">&quot;id&quot;</span>: <span class="s2">&quot;a45a03de-5c3d-452a-8a37-f68be954e784&quot;</span>,
+        <span class="s2">&quot;nature&quot;</span>: <span class="s2">&quot;&quot;</span>,
+        <span class="s2">&quot;origin&quot;</span>: <span class="s2">&quot;&quot;</span>,
+        <span class="s2">&quot;tenant-id&quot;</span>: <span class="s2">&quot;7af4746a-63be-45d8-9fb5-5f58bf909c25&quot;</span>,
+        <span class="s2">&quot;timestamp&quot;</span>: <span class="s2">&quot;&quot;</span>,
+        <span class="s2">&quot;transaction-id&quot;</span>: <span class="s2">&quot;&quot;</span>,
+        <span class="s2">&quot;type&quot;</span>: <span class="s2">&quot;creation&quot;</span>,
+        <span class="s2">&quot;user&quot;</span>: <span class="s2">&quot;johndoe&quot;</span>
+    <span class="o">}</span>,
+    <span class="o">{</span>
+        <span class="s2">&quot;case&quot;</span>: <span class="o">{</span>
+            <span class="s2">&quot;id&quot;</span>: <span class="s2">&quot;9ab2cebb-6b5f-418b-a15f-df1a9ee213f2&quot;</span>,
+            <span class="s2">&quot;name&quot;</span>: <span class="s2">&quot;A great case full of malware&quot;</span>,
+            <span class="s2">&quot;priority&quot;</span>: <span class="s2">&quot;Low&quot;</span>,
+            <span class="s2">&quot;url&quot;</span>: <span class="s2">&quot;https://mycaseserver.com/#/cases/9ab2cebb-6b5f-418b-a15f-df1a9ee213f2&quot;</span>
+        <span class="o">}</span>,
+        <span class="s2">&quot;entity&quot;</span>: <span class="s2">&quot;case&quot;</span>,
+        <span class="s2">&quot;id&quot;</span>: <span class="s2">&quot;a45a03de-5c3d-452a-8a37-f68be954e784&quot;</span>,
+        <span class="s2">&quot;nature&quot;</span>: <span class="s2">&quot;&quot;</span>,
+        <span class="s2">&quot;origin&quot;</span>: <span class="s2">&quot;&quot;</span>,
+        <span class="s2">&quot;tenant-id&quot;</span>: <span class="s2">&quot;7af4746a-63be-45d8-9fb5-5f58bf909c25&quot;</span>,
+        <span class="s2">&quot;timestamp&quot;</span>: <span class="s2">&quot;&quot;</span>,
+        <span class="s2">&quot;transaction-id&quot;</span>: <span class="s2">&quot;&quot;</span>,
+        <span class="s2">&quot;type&quot;</span>: <span class="s2">&quot;priority-update&quot;</span>,
+        <span class="s2">&quot;user&quot;</span>: <span class="s2">&quot;other&quot;</span>
+    <span class="o">}</span>
+<span class="o">]</span>
+</pre></div>
+</div>
+</div></blockquote>
+<p>When no new records are available from the service, the sample should output
+a line similar to the following:</p>
+<blockquote>
+<div><div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="m">2018</span>-05-30 <span class="m">17</span>:39:27,895 __main__ - INFO - Consumed records:
+<span class="o">[]</span>
+</pre></div>
+</div>
+</div></blockquote>
+</div>
+<div class="section" id="details">
+<h2>Details<a class="headerlink" href="#details" title="Permalink to this headline">¶</a></h2>
+<p>The majority of the sample code is shown below:</p>
+<blockquote>
+<div><div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create a new channel object</span>
+<span class="k">with</span> <span class="n">Channel</span><span class="p">(</span><span class="n">CHANNEL_URL</span><span class="p">,</span>
+             <span class="n">auth</span><span class="o">=</span><span class="n">ChannelAuth</span><span class="p">(</span><span class="n">CHANNEL_URL</span><span class="p">,</span>
+                              <span class="n">CHANNEL_USERNAME</span><span class="p">,</span>
+                              <span class="n">CHANNEL_PASSWORD</span><span class="p">,</span>
+                              <span class="n">verify</span><span class="o">=</span><span class="n">VERIFY_CERTIFICATE_BUNDLE</span><span class="p">),</span>
+             <span class="n">consumer_group</span><span class="o">=</span><span class="n">CHANNEL_CONSUMER_GROUP</span><span class="p">,</span>
+             <span class="n">verify</span><span class="o">=</span><span class="n">VERIFY_CERTIFICATE_BUNDLE</span><span class="p">)</span> <span class="k">as</span> <span class="n">channel</span><span class="p">:</span>
+
+    <span class="c1"># Create a function which will be called back upon by the</span>
+    <span class="c1"># &#39;run&#39; method (see below) when records are received from the</span>
+    <span class="c1"># channel.</span>
+    <span class="k">def</span> <span class="nf">consume_callback</span><span class="p">(</span><span class="n">payloads</span><span class="p">):</span>
+        <span class="c1"># Print the payloads which were received. &#39;payloads&#39; is a list of</span>
+        <span class="c1"># dictionary objects extracted from the records received from the</span>
+        <span class="c1"># channel.</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Consumed payloads: </span><span class="se">\n</span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span>
+                    <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">payloads</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">sort_keys</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span>
+        <span class="c1"># Return &#39;True&#39; in order for the &#39;run&#39; call</span>
+        <span class="c1"># to continue attempting to consume records.</span>
+        <span class="k">return</span> <span class="bp">True</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Starting event loop&quot;</span><span class="p">)</span>
+    <span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
+        <span class="c1"># Create a new consumer on the consumer group provided when the channel</span>
+        <span class="c1"># was created above.</span>
+        <span class="n">channel</span><span class="o">.</span><span class="n">create</span><span class="p">()</span>
+
+        <span class="c1"># Subscribe the consumer to a list of topics.</span>
+        <span class="n">channel</span><span class="o">.</span><span class="n">subscribe</span><span class="p">(</span><span class="n">CHANNEL_TOPIC_SUBSCRIPTIONS</span><span class="p">)</span>
+
+        <span class="c1"># Consume records until/if the consumer service returns an error</span>
+        <span class="c1"># for the consumer - in which case this example will repeat the loop</span>
+        <span class="c1"># (creating a new consumer, subscribing the new consumer, and</span>
+        <span class="c1"># consuming additional records).</span>
+        <span class="n">channel</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">consume_callback</span><span class="p">)</span>
+</pre></div>
+</div>
+</div></blockquote>
+<p>The first step is to create a channel to the consumer service. The channel
+includes the URL to the consumer service, <code class="docutils literal notranslate"><span class="pre">CHANNEL_URL</span></code>, and credentials
+that the client uses to authenticate itself to the service, <code class="docutils literal notranslate"><span class="pre">CHANNEL_USERNAME</span></code>
+and <code class="docutils literal notranslate"><span class="pre">CHANNEL_PASSWORD</span></code>.</p>
+<p>The example defines a <code class="docutils literal notranslate"><span class="pre">consume_callback</span></code> function which is invoked with the
+payloads (a list of dictionary objects) extracted from records consumed from the
+channel. The <code class="docutils literal notranslate"><span class="pre">consume_callback</span></code> function outputs the contents of the
+payloads parameter and returns <code class="docutils literal notranslate"><span class="pre">True</span></code> to indicate that the channel should
+continue consuming records. Note that if the <code class="docutils literal notranslate"><span class="pre">consume_callback</span></code> function were
+to instead return <code class="docutils literal notranslate"><span class="pre">False</span></code>, the <code class="docutils literal notranslate"><span class="pre">run</span></code> method would stop
+polling the service for new records and would instead return.</p>
+<p>The next step is to call the <code class="docutils literal notranslate"><span class="pre">create</span></code> method on the channel. This creates a
+consumer on the consumer service for the consumer group supplied when the
+channel was first constructed.</p>
+<p>The example calls the <code class="docutils literal notranslate"><span class="pre">subscribe</span></code> method in order to subscribe the
+consumer to a list of topics.</p>
+<p>The final step is to call the <code class="docutils literal notranslate"><span class="pre">run</span></code> method. The <code class="docutils literal notranslate"><span class="pre">run</span></code> method continuously
+polls the consumer service for available records. The payloads from any records
+which are received from the consumer service are passed in a call to the
+<code class="docutils literal notranslate"><span class="pre">consume_callback</span></code> function. Note that if no records are received from a poll
+attempt, an empty list of payloads is passed into the <code class="docutils literal notranslate"><span class="pre">consume_callback</span></code>
+function.</p>
+<p>If a <code class="docutils literal notranslate"><span class="pre">ConsumerError</span></code> is raised by the consumer service during processing of
+the <code class="docutils literal notranslate"><span class="pre">run</span></code> method, the <code class="docutils literal notranslate"><span class="pre">run</span></code> method call will return. This may occur, for
+example, if the consumer session with the service expires. In this case, the
+code loops back up and calls the <code class="docutils literal notranslate"><span class="pre">create</span></code> and <code class="docutils literal notranslate"><span class="pre">subscribe</span></code> methods again.
+This logic creates a new consumer for the consumer group and re-establishes
+subscriptions for the new consumer before continuing to consume records.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Basic Consume Example</a><ul>
+<li><a class="reference internal" href="#prerequisites">Prerequisites</a></li>
+<li><a class="reference internal" href="#setup">Setup</a></li>
+<li><a class="reference internal" href="#running">Running</a></li>
+<li><a class="reference internal" href="#details">Details</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="installation.html"
+                        title="previous chapter">Library Installation</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="dxlstreamingconsumerclient.html"
+                        title="next chapter">dxlstreamingconsumerclient package</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/basicconsumeexample.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="dxlstreamingconsumerclient.html" title="dxlstreamingconsumerclient package"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="installation.html" title="Library Installation"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">OpenDXL Streaming Consumer Client Library 0.1.0 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2018, McAfee LLC.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.4.
+    </div>
+  </body>
+</html>
