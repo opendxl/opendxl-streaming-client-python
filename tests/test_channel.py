@@ -179,7 +179,7 @@ class Test(unittest.TestCase):
                               auth=auth,
                               consumer_group=self.consumer_group,
                               retry_on_fail=False,
-                              verify="cabundle.crt",
+                              verify_cert_bundle="cabundle.crt",
                               timeout=60,
                               offset="earliest")
 

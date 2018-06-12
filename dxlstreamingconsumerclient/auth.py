@@ -25,7 +25,7 @@ class PermanentAuthenticationError(PermanentError):
 
 
 def login(url, username, password, path_fragment="/identity/v1/login",
-          verify=""):
+          verify_cert_bundle=""):
     """
     Make a login request to the supplied login url.
 
@@ -33,10 +33,10 @@ def login(url, username, password, path_fragment="/identity/v1/login",
     :param str username: User name to supply for request authentication.
     :param str password: Password to supply for request authentication.
     :param str path_fragment: Path to append to the base URL for the request.
-    :param str verify: Path to a CA bundle file containing certificates of
-        trusted CAs. The CA bundle is used to validate that the certificate
-        of the authentication server being connected to was signed by a
-        valid authority. If set to an empty string, the server certificate
+    :param str verify_cert_bundle: Path to a CA bundle file containing
+        certificates of trusted CAs. The CA bundle is used to validate that the
+        certificate of the authentication server being connected to was signed
+        by a valid authority. If set to an empty string, the server certificate
         is not validated.
     :raise TemporaryAuthenticationError: if an unexpected (but possibly
         recoverable) authentication error occurs for the request.
@@ -47,11 +47,11 @@ def login(url, username, password, path_fragment="/identity/v1/login",
     auth = (username, password)
     try:
         with warnings.catch_warnings():
-            if not verify:
+            if not verify_cert_bundle:
                 warnings.filterwarnings("ignore", "Unverified HTTPS request")
             res = requests.get(furl(url).add(path=path_fragment).url,
                                auth=auth,
-                               verify=verify)
+                               verify=verify_cert_bundle)
         if res.status_code == 200:
             try:
                 token = res.json()['AuthorizationToken']

@@ -20,7 +20,8 @@ class Test(unittest.TestCase):
             token = "1234567890"
             req_get.return_value.json = MagicMock(
                 return_value={'AuthorizationToken': token})
-            res = login("/", "username", "password", verify="cabundle.crt")
+            res = login("/", "username", "password",
+                        verify_cert_bundle="cabundle.crt")
             req_get.assert_called_with(
                 "/identity/v1/login", auth=("username", "password"),
                 verify="cabundle.crt")

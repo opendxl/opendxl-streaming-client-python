@@ -47,24 +47,24 @@ class ChannelAuth(requests.auth.AuthBase):
     """
     Authentication class for use with channel requests.
     """
-    def __init__(self, base, username, password, verify=""):
+    def __init__(self, base, username, password, verify_cert_bundle=""):
         """
         Constructor parameters:
 
         :param str base: Base URL to forward authentication requests to.
         :param str username: User name to supply for request authentication.
         :param str password: Password to supply for request authentication.
-        :param str verify: Path to a CA bundle file containing certificates of
-            trusted CAs. The CA bundle is used to validate that the certificate
-            of the authentication server being connected to was signed by a
-            valid authority. If set to an empty string, the server certificate
-            is not validated.
+        :param str verify_cert_bundle: Path to a CA bundle file containing
+            certificates of trusted CAs. The CA bundle is used to validate that
+            the certificate of the authentication server being connected to was
+            signed by a valid authority. If set to an empty string, the server
+            certificate is not validated.
         """
         self._username = username
         self._password = password
         self._base = base
         self._token = None
-        self._verify = verify
+        self._verify_cert_bundle = verify_cert_bundle
         super(ChannelAuth, self).__init__()
 
     def reset(self):
@@ -77,7 +77,8 @@ class ChannelAuth(requests.auth.AuthBase):
         # Implement my authentication
         if not self._token:
             self._token = login(self._base, self._username,
-                                self._password, verify=self._verify)
+                                self._password,
+                                verify_cert_bundle=self._verify_cert_bundle)
         r.headers['Authorization'] = "Bearer {}".format(self._token)
         return r
 
@@ -116,7 +117,7 @@ class Channel(object):
                  offset='latest',  # earliest
                  timeout=300,
                  retry_on_fail=True,
-                 verify=""):
+                 verify_cert_bundle=""):
         """
         Constructor parameters:
 
@@ -132,11 +133,11 @@ class Channel(object):
         :param int timeout: Channel session timeout (in seconds).
         :param bool retry_on_fail: Whether or not the channel will
             automatically retry a call which failed due to a temporary error.
-        :param str verify: Path to a CA bundle file containing certificates of
-            trusted CAs. The CA bundle is used to validate that the certificate
-            of the authentication server being connected to was signed by a
-            valid authority. If set to an empty string, the server certificate
-            is not validated.
+        :param str verify_cert_bundle: Path to a CA bundle file containing
+            certificates of trusted CAs. The CA bundle is used to validate that
+            the certificate of the authentication server being connected to was
+            signed by a valid authority. If set to an empty string, the server
+            certificate is not validated.
         """
         self._base = base
         self._path_prefix = path_prefix
@@ -161,7 +162,7 @@ class Channel(object):
         # Create a session object so that we can store cookies across requests
         self._session = requests.Session()
         self._session.auth = auth
-        self._session.verify = verify
+        self._session.verify = verify_cert_bundle
 
         self._retry_on_fail = retry_on_fail
         self._retry_if_not_consumer_error = \

@@ -38,9 +38,9 @@ with Channel(CHANNEL_URL,
              auth=ChannelAuth(CHANNEL_URL,
                               CHANNEL_USERNAME,
                               CHANNEL_PASSWORD,
-                              verify=VERIFY_CERTIFICATE_BUNDLE),
+                              verify_cert_bundle=VERIFY_CERTIFICATE_BUNDLE),
              consumer_group=CHANNEL_CONSUMER_GROUP,
-             verify=VERIFY_CERTIFICATE_BUNDLE) as channel:
+             verify_cert_bundle=VERIFY_CERTIFICATE_BUNDLE) as channel:
 
     # Create a function which will be called back upon by the 'run' method (see
     # below) when records are received from the channel.
