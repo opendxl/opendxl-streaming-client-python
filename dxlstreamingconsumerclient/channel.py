@@ -385,6 +385,32 @@ class Channel(object):
                 "Unexpected temporary error {}: {}".format(
                     res.status_code, res.text))
 
+    def _consume_loop(self, process_callback, wait_between_queries, topics):
+        continue_running = True
+        while continue_running:
+            try:
+                payloads = self.consume()
+                continue_running = process_callback(payloads)
+                # Commit the offsets for the records which were just consumed.
+                self.commit()
+                with self._run_lock:
+                    if self._stop_requested:
+                        continue_running = False
+                    elif continue_running:
+                        self._stop_requested_condition.wait(
+                            wait_between_queries)
+                        continue_running = not self._stop_requested
+            except ConsumerError as exp:
+                # This exception could be raised if the consumer has been
+                # removed.
+                logging.error("Resetting consumer loop: %s", exp)
+                topics = self._subscriptions
+                self.reset()
+                if not self._retry_on_fail:
+                    continue_running = False
+                break
+        return continue_running, topics
+
     def run(self, process_callback,
             wait_between_queries=_DEFAULT_WAIT_BETWEEN_QUERIES,
             topics=None):
@@ -410,7 +436,8 @@ class Channel(object):
             value, the channel will use topics previously subscribed via a
             call to the :meth:`subscribe` method.
         :type topics: str or list(str)
-        :raise PermanentError: if the channel has been destroyed.
+        :raise PermanentError: if the channel has been destroyed or a prior
+            run is already in progress.
         """
         if not process_callback:
             raise PermanentError("process_callback not provided")
@@ -420,35 +447,17 @@ class Channel(object):
         else:
             topics = self._subscriptions
 
-        logging.info("Starting event loop")
+        continue_running = True
         with self._run_lock:
+            if self._running:
+                raise PermanentError("Previous run already in progress")
             self._running = True
             continue_running = not self._stop_requested
         try:
             while continue_running:
                 self.subscribe(topics)
-                while continue_running:
-                    try:
-                        payloads = self.consume()
-                        continue_running = process_callback(payloads)
-                        # Commit the offsets for the records which were just consumed.
-                        self.commit()
-                        with self._run_lock:
-                            if self._stop_requested:
-                                continue_running = False
-                            elif continue_running:
-                                self._stop_requested_condition.wait(
-                                    wait_between_queries)
-                                continue_running = not self._stop_requested
-                    except ConsumerError as exp:
-                        # This exception could be raised if the consumer has been
-                        # removed.
-                        logging.error("Resetting consumer loop: %s", exp)
-                        topics = self._subscriptions
-                        self.reset()
-                        if not self._retry_on_fail:
-                            continue_running = False
-                        break
+                continue_running, topics = self._consume_loop(
+                    process_callback, wait_between_queries, topics)
         except StopError:
             pass
         finally:
