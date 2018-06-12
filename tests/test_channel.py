@@ -2,6 +2,8 @@ from __future__ import absolute_import
 import unittest
 import base64
 import json
+import threading
+import time
 from mock import call, patch, MagicMock
 from dxlstreamingconsumerclient.channel import \
     (ConsumerError, Channel, ChannelAuth)
@@ -265,6 +267,17 @@ class Test(unittest.TestCase):
         ]
 
         expected_calls = [
+            call("post",
+                 "http://localhost/databus/consumer-service/v1/consumers",
+                 json={
+                     "consumerGroup": self.consumer_group,
+                     "configs": {
+                         "session.timeout.ms": "300000",
+                         "auto.offset.reset": "latest",
+                         "enable.auto.commit": "false"}}),
+            call("post",
+                 "http://localhost/databus/consumer-service/v1/consumers/1234/subscription",
+                 json={"topics": ["topic1", "topic2", "topic3"]}),
             call("get",
                  "http://localhost/databus/consumer-service/v1/consumers/1234/records"),
             call("post",
@@ -283,16 +296,29 @@ class Test(unittest.TestCase):
                          {"topic": "topic3", "partition": 2, "offset": 3}
                      ]}),
             call("get",
-                 "http://localhost/databus/consumer-service/v1/consumers/1234/records")
+                 "http://localhost/databus/consumer-service/v1/consumers/1234/records"),
+            call("post",
+                 "http://localhost/databus/consumer-service/v1/consumers",
+                 json={
+                     "consumerGroup": self.consumer_group,
+                     "configs": {
+                         "session.timeout.ms": "300000",
+                         "auto.offset.reset": "latest",
+                         "enable.auto.commit": "false"}}),
+            call("post",
+                 "http://localhost/databus/consumer-service/v1/consumers/5678/subscription",
+                 json={"topics": ["topic1", "topic2", "topic3"]}),
+            call("get",
+                 "http://localhost/databus/consumer-service/v1/consumers/5678/records")
         ]
 
         with patch("requests.Session") as session:
             session.return_value = MagicMock()  # self._session
             session.return_value.request = MagicMock()
 
-            create_mock = MagicMock()
-            create_mock.status_code = 200
-            create_mock.json = MagicMock(
+            create_consumer_1_mock = MagicMock()
+            create_consumer_1_mock.status_code = 200
+            create_consumer_1_mock.json = MagicMock(
                 return_value={"consumerInstanceId": 1234})
 
             subscr_mock = MagicMock()
@@ -308,6 +334,14 @@ class Test(unittest.TestCase):
             consume_2_mock.json = MagicMock(
                 return_value=second_records_group)
 
+            consume_not_found_mock = MagicMock()
+            consume_not_found_mock.status_code = 404
+
+            create_consumer_2_mock = MagicMock()
+            create_consumer_2_mock.status_code = 200
+            create_consumer_2_mock.json = MagicMock(
+                return_value={"consumerInstanceId": 5678})
+
             consume_3_mock = MagicMock()
             consume_3_mock.status_code = 200
             consume_3_mock.json = MagicMock(
@@ -317,17 +351,17 @@ class Test(unittest.TestCase):
             commit_mock.status_code = 204
 
             session.return_value.request.side_effect = [
-                create_mock, subscr_mock,
+                create_consumer_1_mock, subscr_mock,
                 consume_1_mock, commit_mock,
                 consume_2_mock, commit_mock,
+                consume_not_found_mock,
+                create_consumer_2_mock, subscr_mock,
                 consume_3_mock, commit_mock]
 
             channel = Channel(self.url,
                               auth=auth,
                               consumer_group=self.consumer_group,
-                              retry_on_fail=False)
-
-            channel.subscribe(["topic1", "topic2", "topic3"])
+                              retry_on_fail=True)
 
             payloads_received = []
             def on_consume(payloads):
@@ -339,24 +373,67 @@ class Test(unittest.TestCase):
                 return len(payloads) > 0
 
             session.return_value.request.reset_mock()
-            channel.run(on_consume, wait_between_queries=0)
+            channel.run(on_consume, wait_between_queries=0,
+                        topics=["topic1", "topic2", "topic3"])
 
             session.return_value.request.assert_has_calls(expected_calls)
             self.assertEqual(payloads_received, expected_payloads_received)
 
-            # Setup the next consume call to return a 404 error
-            # (consumer not found)
-            consume_not_found_mock = MagicMock()
-            consume_not_found_mock.status_code = 404
-
-            session.return_value.request.reset_mock()
-            session.return_value.request.side_effect = [
-                consume_not_found_mock
-            ]
-
-            channel.run(on_consume, wait_between_queries=0)
-
-            # run call should return without invoking the
-            # on_consume callback since the consume() call should have
-            # returned a "not found" (404) error (with no records)
             self.assertEqual(len(payloads_received), 3)
+
+    def test_stop(self):
+        auth = ChannelAuth(self.url, self.username, self.password)
+
+        with patch("requests.Session") as session:
+            session.return_value = MagicMock()  # self._session
+            session.return_value.request = MagicMock()
+
+            def on_request(method, url, json=None): # pylint: disable=redefined-outer-name
+                del method, json
+                response_json = {}
+                if url.endswith('/consumers'):
+                    response_json = {"consumerInstanceId": 1234}
+                elif url.endswith('/records'):
+                    response_json = {"records": []}
+
+                response_mock = MagicMock()
+                response_mock.status_code = 200
+                response_mock.json = MagicMock(return_value=response_json)
+                return response_mock
+
+            session.return_value.request.side_effect = on_request
+
+            channel = Channel(self.url,
+                              auth=auth,
+                              consumer_group=self.consumer_group,
+                              retry_on_fail=False)
+
+            def on_consume(_):
+                return True
+
+            run_stopped = [False]
+
+            def run_worker():
+                channel.run(on_consume, wait_between_queries=30,
+                            topics=["topic1", "topic2", "topic3"])
+                run_stopped[0] = True
+
+            thread = threading.Thread(target=run_worker)
+            thread.daemon = True
+            thread.start()
+
+            # Wait for the channel create, subscribe, and first consume
+            # (records) call to be made
+            while len(session.return_value.request.mock_calls) < 3:
+                time.sleep(0.1)
+
+            self.assertFalse(run_stopped[0])
+            channel.stop()
+            thread.join()
+            self.assertTrue(run_stopped[0])
+
+            session.return_value.request.assert_any_call(
+                "post",
+                "http://localhost/databus/consumer-service/v1/consumers/1234/subscription",
+                json={"topics": ["topic1", "topic2", "topic3"]}
+            )

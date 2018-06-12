@@ -23,11 +23,15 @@ CHANNEL_USERNAME = "me"
 CHANNEL_PASSWORD = "secret"
 CHANNEL_CONSUMER_GROUP = "sample_consumer_group"
 CHANNEL_TOPIC_SUBSCRIPTIONS = ["case-mgmt-events"]
-#  Path to a CA bundle file containing certificates of trusted CAs. The CA
-#  bundle is used to validate that the certificate of the server being connected
-#  to was signed by a valid authority. If set to an empty string, the server
-#  certificate is not validated.
+# Path to a CA bundle file containing certificates of trusted CAs. The CA
+# bundle is used to validate that the certificate of the server being connected
+# to was signed by a valid authority. If set to an empty string, the server
+# certificate is not validated.
 VERIFY_CERTIFICATE_BUNDLE = ""
+
+# This constant controls the frequency (in seconds) at which the channel 'run'
+# call below polls the consumer service for new records.
+WAIT_BETWEEN_QUERIES = 5
 
 # Create a new channel object
 with Channel(CHANNEL_URL,
@@ -38,30 +42,18 @@ with Channel(CHANNEL_URL,
              consumer_group=CHANNEL_CONSUMER_GROUP,
              verify=VERIFY_CERTIFICATE_BUNDLE) as channel:
 
-    # Create a function which will be called back upon by the
-    # 'run' method (see below) when records are received from the
-    # channel.
-    def consume_callback(payloads):
+    # Create a function which will be called back upon by the 'run' method (see
+    # below) when records are received from the channel.
+    def process_callback(payloads):
         # Print the payloads which were received. 'payloads' is a list of
         # dictionary objects extracted from the records received from the
         # channel.
-        logger.info("Consumed payloads: \n%s",
+        logger.info("Received payloads: \n%s",
                     json.dumps(payloads, indent=4, sort_keys=True))
-        # Return 'True' in order for the 'run' call
-        # to continue attempting to consume records.
+        # Return 'True' in order for the 'run' call to continue attempting to
+        # consume records.
         return True
 
-    logger.info("Starting event loop")
-    while True:
-        # Create a new consumer on the consumer group provided when the channel
-        # was created above.
-        channel.create()
-
-        # Subscribe the consumer to a list of topics.
-        channel.subscribe(CHANNEL_TOPIC_SUBSCRIPTIONS)
-
-        # Consume records until/if the consumer service returns an error
-        # for the consumer - in which case this example will repeat the loop
-        # (creating a new consumer, subscribing the new consumer, and
-        # consuming additional records).
-        channel.run(consume_callback, wait_between_queries=5)
+    # Consume records indefinitely
+    channel.run(process_callback, wait_between_queries=WAIT_BETWEEN_QUERIES,
+                topics=CHANNEL_TOPIC_SUBSCRIPTIONS)

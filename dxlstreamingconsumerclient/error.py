@@ -16,3 +16,11 @@ class PermanentError(Exception):
     succeed even if the operation were retried.
     """
     pass
+
+
+class StopError(Exception):
+    """
+    Exception raised for an operation which is interrupted due to the channel
+    being stopped.
+    """
+    pass

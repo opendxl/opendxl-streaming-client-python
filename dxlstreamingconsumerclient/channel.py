@@ -9,15 +9,13 @@ import base64
 import json
 import logging
 import threading
-import time
 import warnings
 import requests
 from retrying import Retrying
 from furl import furl
 from .auth import login
-from .error import TemporaryError, PermanentError
+from .error import TemporaryError, PermanentError, StopError
 from ._compat import is_string
-
 
 _RETRY_WAIT_EXPONENTIAL_MULTIPLIER = 1000
 _RETRY_WAIT_EXPONENTIAL_MAX = 10000
@@ -27,7 +25,7 @@ def _retry(f):
     @wraps(f)
     def retry_wrapper(*args, **kwargs):
         channel = args[0]
-        if channel._destroyed:
+        if not channel._active:
             raise PermanentError("Channel has been destroyed")
         return Retrying(
             wait_exponential_multiplier=_RETRY_WAIT_EXPONENTIAL_MULTIPLIER,
@@ -157,7 +155,7 @@ class Channel(object):
 
         # state variables
         self._consumer_id = None
-        self._subscribed = False
+        self._subscriptions = []
         self._records_commit_log = []
 
         # Create a session object so that we can store cookies across requests
@@ -170,7 +168,13 @@ class Channel(object):
             self._retry_if_not_consumer_error_fn()
 
         self._destroy_lock = threading.RLock()
-        self._destroyed = False
+        self._active = True
+
+        self._run_lock = threading.RLock()
+        self._running = False
+        self._stop_requested = False
+        self._stop_requested_condition = threading.Condition(self._run_lock)
+        self._stopped_condition = threading.Condition(self._run_lock)
 
     def __enter__(self):
         """Enter with"""
@@ -182,14 +186,15 @@ class Channel(object):
 
     def _retry_if_not_consumer_error_fn(self):
         def _retry_if_not_consumer_error(exception):
-            should_retry = (not isinstance(exception, ConsumerError) and
-                            self.retry_on_fail)
+            should_retry = (not isinstance(exception, ConsumerError)) and \
+                            self.retry_on_fail and not self._stop_requested
             if should_retry:
                 logging.info("Retrying due to: %s", exception)
             else:
                 logging.warning(
-                    "Will not retry due to: %s %s", exception,
-                    "" if self.retry_on_fail else "(retries disabled)")
+                    "Will not retry due to: %s%s%s", exception,
+                    "" if self.retry_on_fail else " (retries disabled)",
+                    " (stop requested)" if self._stop_requested else "")
             return should_retry
         return _retry_if_not_consumer_error
 
@@ -197,6 +202,8 @@ class Channel(object):
         with warnings.catch_warnings():
             if not self._session.verify:
                 warnings.filterwarnings("ignore", "Unverified HTTPS request")
+            if self._running and self._stop_requested:
+                raise StopError("Channel was stopped")
             response = self._session.request(method, url, **kwargs)
             if response.status_code in [401, 403]:
                 if hasattr(self._session.auth, "reset"):
@@ -204,7 +211,7 @@ class Channel(object):
                 raise TemporaryError(
                     "Token potentially expired ({}): {}".format(
                         response.status_code, response.text))
-        return response
+            return response
 
     def _delete_request(self, url, **kwargs):
         return self._request("delete", url, **kwargs)
@@ -221,7 +228,7 @@ class Channel(object):
         Resets local consumer data stored for the channel.
         """
         self._consumer_id = None
-        self._subscribed = False
+        self._subscriptions = []
         self._records_commit_log = []
 
     @_retry
@@ -282,7 +289,7 @@ class Channel(object):
         res = self._post_request(url, json={'topics': topics})
 
         if res.status_code in [200, 201, 202, 204]:
-            self._subscribed = True
+            self._subscriptions = topics
         elif res.status_code in [404]:
             raise ConsumerError("Consumer '{}' does not exist".format(
                 self._consumer_id
@@ -308,7 +315,7 @@ class Channel(object):
             records returned from the server.
         :rtype: list(dict)
         """
-        if not self._subscribed:
+        if not self._subscriptions:
             raise PermanentError("Channel is not subscribed to any topic")
 
         url = furl(self._base).add(path=self._path_prefix).add(
@@ -377,44 +384,90 @@ class Channel(object):
                 "Unexpected temporary error {}: {}".format(
                     res.status_code, res.text))
 
-    def run(self, consume_callback,
-            wait_between_queries=_DEFAULT_WAIT_BETWEEN_QUERIES):
+    def run(self, process_callback,
+            wait_between_queries=_DEFAULT_WAIT_BETWEEN_QUERIES,
+            topics=None):
         """
         Repeatedly consume records from the subscribed topics. The supplied
-        ``consume_callback`` is invoked with a ``list`` containing each payload
+        ``process_callback`` is invoked with a ``list`` containing each payload
         (as a dictionary) extracted from its corresponding record.
 
-        The ``consume_callback`` should return a value of ``True`` in order for
+        The ``process_callback`` should return a value of ``True`` in order for
         this function to continue consuming additional records. For a return
         value of ``False`` or no return value, no additional records will be
         consumed and this function will return.
 
-        This function will stop consuming records and will return if a
-        :class:`ConsumerError` is raised during a consume attempt - for example,
-        if a token created for the consumer has been revoked by the server.
+        The :meth:`stop` method can also be called to halt an execution of
+        this method.
 
-        :param consume_callback: Callable which is invoked with a list of
+        :param process_callback: Callable which is invoked with a list of
             payloads from records which have been consumed.
         :param int wait_between_queries: Number of seconds to wait between
             calls to consume records.
+        :param topics: Topic list. If set to a non-empty value, the channel
+            will be subscribed to the specified topics. If set to an empty
+            value, the channel will use topics previously subscribed via a
+            call to the :meth:`subscribe` method.
+        :type topics: str or list(str)
         :raise PermanentError: if the channel has been destroyed.
         """
-        if not consume_callback:
-            raise PermanentError("consume_callback not provided")
+        if not process_callback:
+            raise PermanentError("process_callback not provided")
 
-        continue_loop = True
-        while continue_loop:
-            try:
-                payloads = self.consume()
-                continue_loop = consume_callback(payloads)
-                # Commit the offsets for the records which were just consumed.
-                self.commit()
-                time.sleep(wait_between_queries)
-            except ConsumerError as exp:
-                # This exception could be raised if the consumer has been
-                # removed.
-                logging.error("Resetting consumer loop: %s", exp)
-                continue_loop = False
+        if topics:
+            topics = [topics] if is_string(topics) else topics
+        else:
+            topics = self._subscriptions
+
+        logging.info("Starting event loop")
+        with self._run_lock:
+            self._running = True
+            continue_running = not self._stop_requested
+        try:
+            while continue_running:
+                self.subscribe(topics)
+                while continue_running:
+                    try:
+                        payloads = self.consume()
+                        continue_running = process_callback(payloads)
+                        # Commit the offsets for the records which were just consumed.
+                        self.commit()
+                        with self._run_lock:
+                            if self._stop_requested:
+                                continue_running = False
+                            elif continue_running:
+                                self._stop_requested_condition.wait(
+                                    wait_between_queries)
+                                continue_running = not self._stop_requested
+                    except ConsumerError as exp:
+                        # This exception could be raised if the consumer has been
+                        # removed.
+                        logging.error("Resetting consumer loop: %s", exp)
+                        topics = self._subscriptions
+                        self.reset()
+                        if not self._retry_on_fail:
+                            continue_running = False
+                        break
+        except StopError:
+            pass
+        finally:
+            with self._run_lock:
+                self._running = False
+                self._stop_requested = False
+                self._stopped_condition.notify_all()
+
+    def stop(self):
+        """
+        Stop an active execution of the :meth:`run` call. If no :meth:`run`
+        call is active, this function returns immediately. If a :meth:`run`
+        call is active, this function blocks until the run has been completed.
+        """
+        with self._run_lock:
+            if self._running:
+                self._stop_requested = True
+                self._stop_requested_condition.notify_all()
+                while self._running:
+                    self._stopped_condition.wait()
 
     def delete(self):
         """
@@ -484,7 +537,8 @@ class Channel(object):
             channel fails.
         """
         with self._destroy_lock:
-            if not self._destroyed:
+            if self._active:
+                self.stop()
                 self.delete()
                 self._session.close()
-                self._destroyed = True
+                self._active = False

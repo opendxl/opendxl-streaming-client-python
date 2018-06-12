@@ -200,7 +200,6 @@ class ConsumerService(object):
         self._server = None
         self._server_thread = None
         self._started = False
-        self._subscribed_topics = set()
         self._token = random_val()
         self._request_count = 0
 
@@ -347,7 +346,8 @@ def _create_consumer(body, consumer_service, **kwargs): # pylint: disable=unused
                 "sessionCreateTime": session_create_time,
                 "sessionExpirationTime":
                     ((session_create_time * 1000) +
-                     int(body["configs"]["session.timeout.ms"])) // 1000
+                     int(body["configs"]["session.timeout.ms"])) // 1000,
+                "subscribedTopics": []
             }
             LOG.debug("New consumer info: %s",
                       json.dumps(consumer_info, indent=4, sort_keys=True))
@@ -362,22 +362,44 @@ def _create_consumer(body, consumer_service, **kwargs): # pylint: disable=unused
 @_token_auth
 @_consumer_auth
 @_json_body
-def _create_subscription(body, consumer_service, **kwargs): # pylint: disable=unused-argument
-    topics = body.get("topics")
-    if topics:
-        with consumer_service._lock:
-            for topic in topics:
-                consumer_service._subscribed_topics.add(topic)
-    return 204, ""
+def _create_subscription(body,
+                         consumer_instance_id,
+                         consumer_service,
+                         **kwargs): # pylint: disable=unused-argument
+    status_code = 404
+    response = "Consumer not found"
+    with consumer_service._lock:
+        consumer = consumer_service._active_consumers.get(
+            consumer_instance_id)
+        if consumer:
+            topics = body.get("topics")
+            if topics is not None:
+                status_code = 200
+                consumer["subscribedTopics"] = topics
+                LOG.info("Consumer %s subscribed for: %s",
+                         consumer_instance_id, topics)
+            else:
+                status_code = 500
+                response = "No topics key in subscription request body"
+    return status_code, response
 
 @_token_auth
 @_consumer_auth
-def _get_records(consumer_service, **kwargs): # pylint: disable=unused-argument
+def _get_records(consumer_instance_id,
+                 consumer_service,
+                 **kwargs): # pylint: disable=unused-argument
+    status_code = 404
+    response = "Consumer not found"
     with consumer_service._lock:
-        subscribed_records = \
-            [record for record in consumer_service._active_records \
-             if record["routingData"]["topic"] in consumer_service._subscribed_topics]
-    return 200, {"records": subscribed_records}
+        consumer = consumer_service._active_consumers.get(
+            consumer_instance_id)
+        if consumer:
+            status_code = 200
+            response = {"records": \
+                [record for record in consumer_service._active_records \
+                 if record["routingData"]["topic"] \
+                 in consumer["subscribedTopics"]]}
+    return status_code, response
 
 
 def record_matches_offset(record, offset):
