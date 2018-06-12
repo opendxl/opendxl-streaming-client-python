@@ -64,7 +64,7 @@ error occurs during an authentication attempt.</p>
 
 <dl class="function">
 <dt id="dxlstreamingconsumerclient.auth.login">
-<code class="descclassname">dxlstreamingconsumerclient.auth.</code><code class="descname">login</code><span class="sig-paren">(</span><em>url</em>, <em>username</em>, <em>password</em>, <em>path_fragment='/identity/v1/login'</em>, <em>verify=''</em><span class="sig-paren">)</span><a class="headerlink" href="#dxlstreamingconsumerclient.auth.login" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">dxlstreamingconsumerclient.auth.</code><code class="descname">login</code><span class="sig-paren">(</span><em>url</em>, <em>username</em>, <em>password</em>, <em>path_fragment='/identity/v1/login'</em>, <em>verify_cert_bundle=''</em><span class="sig-paren">)</span><a class="headerlink" href="#dxlstreamingconsumerclient.auth.login" title="Permalink to this definition">¶</a></dt>
 <dd><p>Make a login request to the supplied login url.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -75,10 +75,10 @@ error occurs during an authentication attempt.</p>
 <li><strong>username</strong> (<em>str</em>) -- User name to supply for request authentication.</li>
 <li><strong>password</strong> (<em>str</em>) -- Password to supply for request authentication.</li>
 <li><strong>path_fragment</strong> (<em>str</em>) -- Path to append to the base URL for the request.</li>
-<li><strong>verify</strong> (<em>str</em>) -- Path to a CA bundle file containing certificates of
-trusted CAs. The CA bundle is used to validate that the certificate
-of the authentication server being connected to was signed by a
-valid authority. If set to an empty string, the server certificate
+<li><strong>verify_cert_bundle</strong> (<em>str</em>) -- Path to a CA bundle file containing
+certificates of trusted CAs. The CA bundle is used to validate that the
+certificate of the authentication server being connected to was signed
+by a valid authority. If set to an empty string, the server certificate
 is not validated.</li>
 </ul>
 </td>

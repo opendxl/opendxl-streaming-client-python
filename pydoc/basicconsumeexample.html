@@ -64,10 +64,10 @@ service channel:</p>
 <span class="n">CHANNEL_PASSWORD</span> <span class="o">=</span> <span class="s2">&quot;secret&quot;</span>
 <span class="n">CHANNEL_CONSUMER_GROUP</span> <span class="o">=</span> <span class="s2">&quot;sample_consumer_group&quot;</span>
 <span class="n">CHANNEL_TOPIC_SUBSCRIPTIONS</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;case-mgmt-events&quot;</span><span class="p">]</span>
-<span class="c1">#  Path to a CA bundle file containing certificates of trusted CAs. The CA</span>
-<span class="c1">#  bundle is used to validate that the certificate of the server being connected</span>
-<span class="c1">#  to was signed by a valid authority. If set to an empty string, the server</span>
-<span class="c1">#  certificate is not validated.</span>
+<span class="c1"># Path to a CA bundle file containing certificates of trusted CAs. The CA</span>
+<span class="c1"># bundle is used to validate that the certificate of the server being connected</span>
+<span class="c1"># to was signed by a valid authority. If set to an empty string, the server</span>
+<span class="c1"># certificate is not validated.</span>
 <span class="n">VERIFY_CERTIFICATE_BUNDLE</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
 </pre></div>
 </div>
@@ -111,7 +111,7 @@ as follows:</p>
 should be displayed to the output window. Using the <code class="docutils literal notranslate"><span class="pre">fake_consumer_service</span></code>,
 for example, initial payloads similar to the following should appear:</p>
 <blockquote>
-<div><div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="m">2018</span>-05-30 <span class="m">17</span>:35:36,754 __main__ - INFO - Consumed payloads:
+<div><div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="m">2018</span>-05-30 <span class="m">17</span>:35:36,754 __main__ - INFO - Received payloads:
 <span class="o">[</span>
     <span class="o">{</span>
         <span class="s2">&quot;case&quot;</span>: <span class="o">{</span>
@@ -154,7 +154,7 @@ for example, initial payloads similar to the following should appear:</p>
 <p>When no new records are available from the service, the sample should output
 a line similar to the following:</p>
 <blockquote>
-<div><div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="m">2018</span>-05-30 <span class="m">17</span>:39:27,895 __main__ - INFO - Consumed records:
+<div><div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="m">2018</span>-05-30 <span class="m">17</span>:39:27,895 __main__ - INFO - Received records:
 <span class="o">[]</span>
 </pre></div>
 </div>
@@ -169,37 +169,25 @@ a line similar to the following:</p>
              <span class="n">auth</span><span class="o">=</span><span class="n">ChannelAuth</span><span class="p">(</span><span class="n">CHANNEL_URL</span><span class="p">,</span>
                               <span class="n">CHANNEL_USERNAME</span><span class="p">,</span>
                               <span class="n">CHANNEL_PASSWORD</span><span class="p">,</span>
-                              <span class="n">verify</span><span class="o">=</span><span class="n">VERIFY_CERTIFICATE_BUNDLE</span><span class="p">),</span>
+                              <span class="n">verify_cert_bundle</span><span class="o">=</span><span class="n">VERIFY_CERTIFICATE_BUNDLE</span><span class="p">),</span>
              <span class="n">consumer_group</span><span class="o">=</span><span class="n">CHANNEL_CONSUMER_GROUP</span><span class="p">,</span>
-             <span class="n">verify</span><span class="o">=</span><span class="n">VERIFY_CERTIFICATE_BUNDLE</span><span class="p">)</span> <span class="k">as</span> <span class="n">channel</span><span class="p">:</span>
+             <span class="n">verify_cert_bundle</span><span class="o">=</span><span class="n">VERIFY_CERTIFICATE_BUNDLE</span><span class="p">)</span> <span class="k">as</span> <span class="n">channel</span><span class="p">:</span>
 
-    <span class="c1"># Create a function which will be called back upon by the</span>
-    <span class="c1"># &#39;run&#39; method (see below) when records are received from the</span>
-    <span class="c1"># channel.</span>
-    <span class="k">def</span> <span class="nf">consume_callback</span><span class="p">(</span><span class="n">payloads</span><span class="p">):</span>
+    <span class="c1"># Create a function which will be called back upon by the &#39;run&#39; method (see</span>
+    <span class="c1"># below) when records are received from the channel.</span>
+    <span class="k">def</span> <span class="nf">process_callback</span><span class="p">(</span><span class="n">payloads</span><span class="p">):</span>
         <span class="c1"># Print the payloads which were received. &#39;payloads&#39; is a list of</span>
         <span class="c1"># dictionary objects extracted from the records received from the</span>
         <span class="c1"># channel.</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Consumed payloads: </span><span class="se">\n</span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Received payloads: </span><span class="se">\n</span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span>
                     <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">payloads</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">sort_keys</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span>
-        <span class="c1"># Return &#39;True&#39; in order for the &#39;run&#39; call</span>
-        <span class="c1"># to continue attempting to consume records.</span>
+        <span class="c1"># Return &#39;True&#39; in order for the &#39;run&#39; call to continue attempting to</span>
+        <span class="c1"># consume records.</span>
         <span class="k">return</span> <span class="bp">True</span>
 
-    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Starting event loop&quot;</span><span class="p">)</span>
-    <span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
-        <span class="c1"># Create a new consumer on the consumer group provided when the channel</span>
-        <span class="c1"># was created above.</span>
-        <span class="n">channel</span><span class="o">.</span><span class="n">create</span><span class="p">()</span>
-
-        <span class="c1"># Subscribe the consumer to a list of topics.</span>
-        <span class="n">channel</span><span class="o">.</span><span class="n">subscribe</span><span class="p">(</span><span class="n">CHANNEL_TOPIC_SUBSCRIPTIONS</span><span class="p">)</span>
-
-        <span class="c1"># Consume records until/if the consumer service returns an error</span>
-        <span class="c1"># for the consumer - in which case this example will repeat the loop</span>
-        <span class="c1"># (creating a new consumer, subscribing the new consumer, and</span>
-        <span class="c1"># consuming additional records).</span>
-        <span class="n">channel</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">consume_callback</span><span class="p">,</span> <span class="n">wait_between_queries</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+    <span class="c1"># Consume records indefinitely</span>
+    <span class="n">channel</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">process_callback</span><span class="p">,</span> <span class="n">wait_between_queries</span><span class="o">=</span><span class="n">WAIT_BETWEEN_QUERIES</span><span class="p">,</span>
+                <span class="n">topics</span><span class="o">=</span><span class="n">CHANNEL_TOPIC_SUBSCRIPTIONS</span><span class="p">)</span>
 </pre></div>
 </div>
 </div></blockquote>
@@ -207,31 +195,21 @@ a line similar to the following:</p>
 includes the URL to the consumer service, <code class="docutils literal notranslate"><span class="pre">CHANNEL_URL</span></code>, and credentials
 that the client uses to authenticate itself to the service, <code class="docutils literal notranslate"><span class="pre">CHANNEL_USERNAME</span></code>
 and <code class="docutils literal notranslate"><span class="pre">CHANNEL_PASSWORD</span></code>.</p>
-<p>The example defines a <code class="docutils literal notranslate"><span class="pre">consume_callback</span></code> function which is invoked with the
+<p>The example defines a <code class="docutils literal notranslate"><span class="pre">process_callback</span></code> function which is invoked with the
 payloads (a list of dictionary objects) extracted from records consumed from the
-channel. The <code class="docutils literal notranslate"><span class="pre">consume_callback</span></code> function outputs the contents of the
+channel. The <code class="docutils literal notranslate"><span class="pre">process_callback</span></code> function outputs the contents of the
 payloads parameter and returns <code class="docutils literal notranslate"><span class="pre">True</span></code> to indicate that the channel should
-continue consuming records. Note that if the <code class="docutils literal notranslate"><span class="pre">consume_callback</span></code> function were
-to instead return <code class="docutils literal notranslate"><span class="pre">False</span></code>, the <code class="docutils literal notranslate"><span class="pre">run</span></code> method would stop
-polling the service for new records and would instead return.</p>
-<p>The next step is to call the <code class="docutils literal notranslate"><span class="pre">create</span></code> method on the channel. This creates a
-consumer on the consumer service for the consumer group supplied when the
-channel was first constructed.</p>
-<p>The example calls the <code class="docutils literal notranslate"><span class="pre">subscribe</span></code> method in order to subscribe the
-consumer to a list of topics.</p>
-<p>The final step is to call the <code class="docutils literal notranslate"><span class="pre">run</span></code> method. The <code class="docutils literal notranslate"><span class="pre">run</span></code> method continuously
-polls the consumer service for available records. The payloads from any records
-which are received from the consumer service are passed in a call to the
-<code class="docutils literal notranslate"><span class="pre">consume_callback</span></code> function. Note that if no records are received from a poll
-attempt, an empty list of payloads is passed into the <code class="docutils literal notranslate"><span class="pre">consume_callback</span></code>
-function. The optional <code class="docutils literal notranslate"><span class="pre">wait_between_queries</span></code> parameter is specified as <code class="docutils literal notranslate"><span class="pre">5</span></code>
-in order for the consumer service polls to only be made every <code class="docutils literal notranslate"><span class="pre">5</span></code> seconds.</p>
-<p>If a <code class="docutils literal notranslate"><span class="pre">ConsumerError</span></code> is raised by the consumer service during processing of
-the <code class="docutils literal notranslate"><span class="pre">run</span></code> method, the <code class="docutils literal notranslate"><span class="pre">run</span></code> method call will return. This may occur, for
-example, if the consumer session with the service expires. In this case, the
-code loops back up and calls the <code class="docutils literal notranslate"><span class="pre">create</span></code> and <code class="docutils literal notranslate"><span class="pre">subscribe</span></code> methods again.
-This logic creates a new consumer for the consumer group and re-establishes
-subscriptions for the new consumer before continuing to consume records.</p>
+continue consuming records. Note that if the <code class="docutils literal notranslate"><span class="pre">process_callback</span></code> function were
+to instead return <code class="docutils literal notranslate"><span class="pre">False</span></code>, the <code class="docutils literal notranslate"><span class="pre">run</span></code> method would stop polling the service
+for new records and would instead return.</p>
+<p>The final step is to call the <code class="docutils literal notranslate"><span class="pre">run</span></code> method. The <code class="docutils literal notranslate"><span class="pre">run</span></code> method establishes a
+consumer instance with the service, subscribes the consumer instance for events
+delivered to the <code class="docutils literal notranslate"><span class="pre">topics</span></code> included in the <code class="docutils literal notranslate"><span class="pre">CHANNEL_TOPIC_SUBSCRIPTIONS</span></code>
+variable, and continuously polls the consumer service for available records. The
+payloads from any records which are received from the consumer service are
+passed in a call to the <code class="docutils literal notranslate"><span class="pre">process_callback</span></code> function. Note that if no records
+are received from a poll attempt, an empty list of payloads is passed into the
+<code class="docutils literal notranslate"><span class="pre">process_callback</span></code> function.</p>
 </div>
 </div>
 

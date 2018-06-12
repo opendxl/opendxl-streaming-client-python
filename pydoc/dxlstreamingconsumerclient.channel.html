@@ -49,7 +49,7 @@
 service.</p>
 <dl class="class">
 <dt id="dxlstreamingconsumerclient.channel.Channel">
-<em class="property">class </em><code class="descclassname">dxlstreamingconsumerclient.channel.</code><code class="descname">Channel</code><span class="sig-paren">(</span><em>base</em>, <em>auth</em>, <em>consumer_group</em>, <em>path_prefix='/databus/consumer-service/v1'</em>, <em>offset='latest'</em>, <em>timeout=300</em>, <em>retry_on_fail=True</em>, <em>verify=''</em><span class="sig-paren">)</span><a class="headerlink" href="#dxlstreamingconsumerclient.channel.Channel" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">dxlstreamingconsumerclient.channel.</code><code class="descname">Channel</code><span class="sig-paren">(</span><em>base</em>, <em>auth</em>, <em>consumer_group</em>, <em>path_prefix='/databus/consumer-service/v1'</em>, <em>offset='latest'</em>, <em>timeout=300</em>, <em>retry_on_fail=True</em>, <em>verify_cert_bundle=''</em><span class="sig-paren">)</span><a class="headerlink" href="#dxlstreamingconsumerclient.channel.Channel" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>The <a class="reference internal" href="#dxlstreamingconsumerclient.channel.Channel" title="dxlstreamingconsumerclient.channel.Channel"><code class="xref py py-class docutils literal notranslate"><span class="pre">Channel</span></code></a> class is responsible for all communication with the
 consumer service.</p>
@@ -86,11 +86,11 @@ of 'latest', 'earliest', or 'none'.</li>
 <li><strong>timeout</strong> (<em>int</em>) -- Channel session timeout (in seconds).</li>
 <li><strong>retry_on_fail</strong> (<em>bool</em>) -- Whether or not the channel will
 automatically retry a call which failed due to a temporary error.</li>
-<li><strong>verify</strong> (<em>str</em>) -- Path to a CA bundle file containing certificates of
-trusted CAs. The CA bundle is used to validate that the certificate
-of the authentication server being connected to was signed by a
-valid authority. If set to an empty string, the server certificate
-is not validated.</li>
+<li><strong>verify_cert_bundle</strong> (<em>str</em>) -- Path to a CA bundle file containing
+certificates of trusted CAs. The CA bundle is used to validate that
+the certificate of the authentication server being connected to was
+signed by a valid authority. If set to an empty string, the server
+certificate is not validated.</li>
 </ul>
 </td>
 </tr>
@@ -229,26 +229,29 @@ failed due to a temporary error.</p>
 
 <dl class="method">
 <dt id="dxlstreamingconsumerclient.channel.Channel.run">
-<code class="descname">run</code><span class="sig-paren">(</span><em>consume_callback</em>, <em>wait_between_queries=30</em><span class="sig-paren">)</span><a class="headerlink" href="#dxlstreamingconsumerclient.channel.Channel.run" title="Permalink to this definition">¶</a></dt>
+<code class="descname">run</code><span class="sig-paren">(</span><em>process_callback</em>, <em>wait_between_queries=30</em>, <em>topics=None</em><span class="sig-paren">)</span><a class="headerlink" href="#dxlstreamingconsumerclient.channel.Channel.run" title="Permalink to this definition">¶</a></dt>
 <dd><p>Repeatedly consume records from the subscribed topics. The supplied
-<code class="docutils literal notranslate"><span class="pre">consume_callback</span></code> is invoked with a <code class="docutils literal notranslate"><span class="pre">list</span></code> containing each payload
+<code class="docutils literal notranslate"><span class="pre">process_callback</span></code> is invoked with a <code class="docutils literal notranslate"><span class="pre">list</span></code> containing each payload
 (as a dictionary) extracted from its corresponding record.</p>
-<p>The <code class="docutils literal notranslate"><span class="pre">consume_callback</span></code> should return a value of <code class="docutils literal notranslate"><span class="pre">True</span></code> in order for
+<p>The <code class="docutils literal notranslate"><span class="pre">process_callback</span></code> should return a value of <code class="docutils literal notranslate"><span class="pre">True</span></code> in order for
 this function to continue consuming additional records. For a return
 value of <code class="docutils literal notranslate"><span class="pre">False</span></code> or no return value, no additional records will be
 consumed and this function will return.</p>
-<p>This function will stop consuming records and will return if a
-<a class="reference internal" href="#dxlstreamingconsumerclient.channel.ConsumerError" title="dxlstreamingconsumerclient.channel.ConsumerError"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConsumerError</span></code></a> is raised during a consume attempt - for example,
-if a token created for the consumer has been revoked by the server.</p>
+<p>The <a class="reference internal" href="#dxlstreamingconsumerclient.channel.Channel.stop" title="dxlstreamingconsumerclient.channel.Channel.stop"><code class="xref py py-meth docutils literal notranslate"><span class="pre">stop()</span></code></a> method can also be called to halt an execution of
+this method.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>consume_callback</strong> -- Callable which is invoked with a list of
+<li><strong>process_callback</strong> -- Callable which is invoked with a list of
 payloads from records which have been consumed.</li>
 <li><strong>wait_between_queries</strong> (<em>int</em>) -- Number of seconds to wait between
 calls to consume records.</li>
+<li><strong>topics</strong> (<em>str</em><em> or </em><em>list</em><em>(</em><em>str</em><em>)</em>) -- Topic list. If set to a non-empty value, the channel
+will be subscribed to the specified topics. If set to an empty
+value, the channel will use topics previously subscribed via a
+call to the <a class="reference internal" href="#dxlstreamingconsumerclient.channel.Channel.subscribe" title="dxlstreamingconsumerclient.channel.Channel.subscribe"><code class="xref py py-meth docutils literal notranslate"><span class="pre">subscribe()</span></code></a> method.</li>
 </ul>
 </td>
 </tr>
@@ -257,6 +260,14 @@ calls to consume records.</li>
 </tr>
 </tbody>
 </table>
+</dd></dl>
+
+<dl class="method">
+<dt id="dxlstreamingconsumerclient.channel.Channel.stop">
+<code class="descname">stop</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#dxlstreamingconsumerclient.channel.Channel.stop" title="Permalink to this definition">¶</a></dt>
+<dd><p>Stop an active execution of the <a class="reference internal" href="#dxlstreamingconsumerclient.channel.Channel.run" title="dxlstreamingconsumerclient.channel.Channel.run"><code class="xref py py-meth docutils literal notranslate"><span class="pre">run()</span></code></a> call. If no <a class="reference internal" href="#dxlstreamingconsumerclient.channel.Channel.run" title="dxlstreamingconsumerclient.channel.Channel.run"><code class="xref py py-meth docutils literal notranslate"><span class="pre">run()</span></code></a>
+call is active, this function returns immediately. If a <a class="reference internal" href="#dxlstreamingconsumerclient.channel.Channel.run" title="dxlstreamingconsumerclient.channel.Channel.run"><code class="xref py py-meth docutils literal notranslate"><span class="pre">run()</span></code></a>
+call is active, this function blocks until the run has been completed.</p>
 </dd></dl>
 
 <dl class="method">
@@ -288,7 +299,7 @@ to False.</li>
 
 <dl class="class">
 <dt id="dxlstreamingconsumerclient.channel.ChannelAuth">
-<em class="property">class </em><code class="descclassname">dxlstreamingconsumerclient.channel.</code><code class="descname">ChannelAuth</code><span class="sig-paren">(</span><em>base</em>, <em>username</em>, <em>password</em>, <em>verify=''</em><span class="sig-paren">)</span><a class="headerlink" href="#dxlstreamingconsumerclient.channel.ChannelAuth" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">dxlstreamingconsumerclient.channel.</code><code class="descname">ChannelAuth</code><span class="sig-paren">(</span><em>base</em>, <em>username</em>, <em>password</em>, <em>verify_cert_bundle=''</em><span class="sig-paren">)</span><a class="headerlink" href="#dxlstreamingconsumerclient.channel.ChannelAuth" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">requests.auth.AuthBase</span></code></p>
 <p>Authentication class for use with channel requests.</p>
 <p>Constructor parameters:</p>
@@ -300,11 +311,11 @@ to False.</li>
 <li><strong>base</strong> (<em>str</em>) -- Base URL to forward authentication requests to.</li>
 <li><strong>username</strong> (<em>str</em>) -- User name to supply for request authentication.</li>
 <li><strong>password</strong> (<em>str</em>) -- Password to supply for request authentication.</li>
-<li><strong>verify</strong> (<em>str</em>) -- Path to a CA bundle file containing certificates of
-trusted CAs. The CA bundle is used to validate that the certificate
-of the authentication server being connected to was signed by a
-valid authority. If set to an empty string, the server certificate
-is not validated.</li>
+<li><strong>verify_cert_bundle</strong> (<em>str</em>) -- Path to a CA bundle file containing
+certificates of trusted CAs. The CA bundle is used to validate that
+the certificate of the authentication server being connected to was
+signed by a valid authority. If set to an empty string, the server
+certificate is not validated.</li>
 </ul>
 </td>
 </tr>
