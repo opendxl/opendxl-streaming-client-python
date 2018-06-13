@@ -46,7 +46,6 @@ CONSUMER_GROUP = "sample_consumer_group"
 def encode_payload(obj):
     return base64.b64encode(json.dumps(obj).encode()).decode()
 
-
 DEFAULT_RECORDS = [
     {
         "routingData": {
@@ -136,6 +135,7 @@ def consumer_service_handler(consumer_service):
                 create_service_path("consumers/[^/]+/offsets"):
                     {"POST": _commit_offsets},
                 "^/reset-records$": {"POST": _reset_records},
+                "^/record": {"POST": _create_record},
                 create_service_path("consumers/[^/]+"):
                     {"DELETE": _delete_consumer}
             }
@@ -480,6 +480,20 @@ def _commit_offsets(body, consumer_service, **kwargs): # pylint: disable=unused-
              if not record_in_offsets(record, committed_offsets)]
     return 204, ""
 
+
+@_json_body
+def _create_record(body, consumer_service, **kwargs): # pylint: disable=unused-argument
+    status_code = 200
+    response = ""
+    with consumer_service._lock:
+        if "message" in body and "payload" in body["message"]:
+            payload = body["message"]["payload"]
+            if isinstance(payload, dict):
+                body["message"]["payload"] = encode_payload(payload)
+            consumer_service._active_records.append(body)
+        else:
+            response = "No payload in record"
+    return status_code, response
 
 def _reset_records(consumer_service, **kwargs): # pylint: disable=unused-argument
     with consumer_service._lock:
