@@ -49,7 +49,7 @@ Messages like the following should appear in the command window:
     .. code-block:: shell
 
         INFO:__main__:Starting service
-        INFO:__main__:Started service on mycaseserver:50080
+        INFO:__main__:Started service on http://mycaseserver:50080
 
 Running
 *******
