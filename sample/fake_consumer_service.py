@@ -5,6 +5,7 @@ import base64
 from functools import wraps
 import json
 import logging
+import os
 import re
 import random
 import signal
@@ -20,11 +21,14 @@ except ImportError:
     from BaseHTTPServer import HTTPServer
     from SimpleHTTPServer import SimpleHTTPRequestHandler
 
+try:
+    from configparser import ConfigParser
+except ImportError:
+    from ConfigParser import ConfigParser
+
 DEFAULT_PORT = 50080
 LOG_LEVEL = logging.INFO
 USE_SSL = False
-SERVER_CERT_FILE = None
-SERVER_KEY_FILE = None
 REQUESTS_PER_TOKEN = 25
 RUN_CHECK_WAIT = 5
 MAX_SHUTDOWN_WAIT = 10
@@ -192,8 +196,7 @@ def consumer_service_handler(consumer_service):
 
 
 class ConsumerService(object):
-    def __init__(self, port=DEFAULT_PORT):
-        self._port = port
+    def __init__(self, port=DEFAULT_PORT, config_file=None):
         self._active_consumers = {}
         self._active_records = list(DEFAULT_RECORDS)
         self._lock = threading.Lock()
@@ -202,6 +205,16 @@ class ConsumerService(object):
         self._started = False
         self._token = random_val()
         self._request_count = 0
+        self._config = self._load_configuration(config_file)
+        self._port = self._get_setting_from_config("port",
+                                                   default_value=port,
+                                                   return_type=int)
+        self._use_ssl = self._get_setting_from_config("useSSL",
+                                                      default_value=USE_SSL,
+                                                      return_type=bool)
+        self._server_certificate = self._get_setting_from_config(
+            "serverCertificate")
+        self._server_key = self._get_setting_from_config("serverKey")
 
     def __enter__(self):
         self.start()
@@ -209,6 +222,48 @@ class ConsumerService(object):
 
     def __exit__(self, exception_type, exception_value, traceback):
         self.stop()
+
+    def _get_setting_from_config(self, setting,
+                                 section="General",
+                                 default_value=None,
+                                 return_type=str,
+                                 is_file_path=False):
+        config = self._config
+        if config and config.has_option(section, setting):
+            getter_methods = {str: config.get,
+                              list: config.get,
+                              bool: config.getboolean,
+                              int: config.getint,
+                              float: config.getfloat}
+            try:
+                return_value = getter_methods[return_type](section, setting)
+            except ValueError as ex:
+                raise ValueError(
+                    "Unexpected value for setting {} in section {}: {}".format(
+                        setting, section, ex))
+            if return_type == str:
+                return_value = return_value.strip()
+        else:
+            return_value = default_value
+
+        if is_file_path and return_value:
+            if not os.path.isfile(return_value):
+                raise ValueError(
+                    "Cannot find file for setting {} in section {}: {}".format(
+                        setting, section, return_value))
+        return return_value
+
+    @staticmethod
+    def _load_configuration(config_file):
+        config = None
+        if config_file:
+            config = ConfigParser()
+            read_files = config.read(config_file)
+            if len(read_files) is not 1:
+                raise Exception(
+                    "Error attempting to read configuration file: {0}".format(
+                        config_file))
+        return config
 
     @property
     def port(self):
@@ -221,13 +276,15 @@ class ConsumerService(object):
                 LOG.info("Starting service")
                 self._server = HTTPServer(
                     ('', self.port), consumer_service_handler(self))
-                if USE_SSL:
+                if self._use_ssl:
                     self._server.socket = ssl.wrap_socket(
-                        self._server.socket, certfile=SERVER_CERT_FILE,
-                        keyfile=SERVER_KEY_FILE, server_side=True
+                        self._server.socket, certfile=self._server_certificate,
+                        keyfile=self._server_key, server_side=True
                     )
-                LOG.info("Started service on %s:%s",
-                         self._server.server_name, self._server.server_port)
+                LOG.info("Started service on http%s://%s:%s",
+                         "s" if self._use_ssl else "",
+                         self._server.server_name,
+                         self._server.server_port)
                 self._server_thread = threading.Thread(
                     target=self._server.serve_forever)
                 self._server_thread.start()
@@ -432,12 +489,9 @@ def _reset_records(consumer_service, **kwargs): # pylint: disable=unused-argumen
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
-    PORT = DEFAULT_PORT
+    config_file_param = None
     if len(sys.argv) > 1:
-        try:
-            PORT = int(sys.argv[1])
-        except ValueError:
-            sys.exit("Numeric value not specified for port")
+        config_file_param = sys.argv[1]
 
     RUNNING = [True]
     RUN_CONDITION = threading.Condition()
@@ -447,7 +501,7 @@ if __name__ == "__main__":
             RUNNING[0] = False
             RUN_CONDITION.notify_all()
 
-    with ConsumerService(PORT):
+    with ConsumerService(config_file=config_file_param):
         signal.signal(signal.SIGTERM, signal_handler)
         signal.signal(signal.SIGINT, signal_handler)
         with RUN_CONDITION:
