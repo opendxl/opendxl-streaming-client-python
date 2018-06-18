@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>dxlstreamingconsumerclient.auth module &#8212; OpenDXL Streaming Consumer Client Library 0.1.0 documentation</title>
+    <title>dxlstreamingclient.auth module &#8212; OpenDXL Streaming Client Library 0.1.0 documentation</title>
     <link rel="stylesheet" href="_static/classic.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript" src="_static/documentation_options.js"></script>
@@ -15,8 +15,8 @@
     <script type="text/javascript" src="_static/doctools.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="dxlstreamingconsumerclient.channel module" href="dxlstreamingconsumerclient.channel.html" />
-    <link rel="prev" title="dxlstreamingconsumerclient package" href="dxlstreamingconsumerclient.html" /> 
+    <link rel="next" title="dxlstreamingclient.channel module" href="dxlstreamingclient.channel.html" />
+    <link rel="prev" title="dxlstreamingclient package" href="dxlstreamingclient.html" /> 
   </head><body>
     <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
@@ -28,13 +28,13 @@
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="dxlstreamingconsumerclient.channel.html" title="dxlstreamingconsumerclient.channel module"
+          <a href="dxlstreamingclient.channel.html" title="dxlstreamingclient.channel module"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="dxlstreamingconsumerclient.html" title="dxlstreamingconsumerclient package"
+          <a href="dxlstreamingclient.html" title="dxlstreamingclient package"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">OpenDXL Streaming Consumer Client Library 0.1.0 documentation</a> &#187;</li>
-          <li class="nav-item nav-item-1"><a href="dxlstreamingconsumerclient.html" accesskey="U">dxlstreamingconsumerclient package</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">OpenDXL Streaming Client Library 0.1.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="dxlstreamingclient.html" accesskey="U">dxlstreamingclient package</a> &#187;</li> 
       </ul>
     </div>  
 
@@ -43,28 +43,28 @@
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <div class="section" id="module-dxlstreamingconsumerclient.auth">
-<span id="dxlstreamingconsumerclient-auth-module"></span><h1>dxlstreamingconsumerclient.auth module<a class="headerlink" href="#module-dxlstreamingconsumerclient.auth" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="module-dxlstreamingclient.auth">
+<span id="dxlstreamingclient-auth-module"></span><h1>dxlstreamingclient.auth module<a class="headerlink" href="#module-dxlstreamingclient.auth" title="Permalink to this headline">¶</a></h1>
 <p>Authentication APIs</p>
 <dl class="exception">
-<dt id="dxlstreamingconsumerclient.auth.PermanentAuthenticationError">
-<em class="property">exception </em><code class="descclassname">dxlstreamingconsumerclient.auth.</code><code class="descname">PermanentAuthenticationError</code><a class="headerlink" href="#dxlstreamingconsumerclient.auth.PermanentAuthenticationError" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="dxlstreamingconsumerclient.error.html#dxlstreamingconsumerclient.error.PermanentError" title="dxlstreamingconsumerclient.error.PermanentError"><code class="xref py py-class docutils literal notranslate"><span class="pre">dxlstreamingconsumerclient.error.PermanentError</span></code></a></p>
+<dt id="dxlstreamingclient.auth.PermanentAuthenticationError">
+<em class="property">exception </em><code class="descclassname">dxlstreamingclient.auth.</code><code class="descname">PermanentAuthenticationError</code><a class="headerlink" href="#dxlstreamingclient.auth.PermanentAuthenticationError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="dxlstreamingclient.error.html#dxlstreamingclient.error.PermanentError" title="dxlstreamingclient.error.PermanentError"><code class="xref py py-class docutils literal notranslate"><span class="pre">dxlstreamingclient.error.PermanentError</span></code></a></p>
 <p>Exception raised when an error occurs during an authentication attempt due to
 the user being unauthorized.</p>
 </dd></dl>
 
 <dl class="exception">
-<dt id="dxlstreamingconsumerclient.auth.TemporaryAuthenticationError">
-<em class="property">exception </em><code class="descclassname">dxlstreamingconsumerclient.auth.</code><code class="descname">TemporaryAuthenticationError</code><a class="headerlink" href="#dxlstreamingconsumerclient.auth.TemporaryAuthenticationError" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="dxlstreamingconsumerclient.error.html#dxlstreamingconsumerclient.error.TemporaryError" title="dxlstreamingconsumerclient.error.TemporaryError"><code class="xref py py-class docutils literal notranslate"><span class="pre">dxlstreamingconsumerclient.error.TemporaryError</span></code></a></p>
+<dt id="dxlstreamingclient.auth.TemporaryAuthenticationError">
+<em class="property">exception </em><code class="descclassname">dxlstreamingclient.auth.</code><code class="descname">TemporaryAuthenticationError</code><a class="headerlink" href="#dxlstreamingclient.auth.TemporaryAuthenticationError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="dxlstreamingclient.error.html#dxlstreamingclient.error.TemporaryError" title="dxlstreamingclient.error.TemporaryError"><code class="xref py py-class docutils literal notranslate"><span class="pre">dxlstreamingclient.error.TemporaryError</span></code></a></p>
 <p>Exception raised when an unexpected/unknown (but possibly recoverable)
 error occurs during an authentication attempt.</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="dxlstreamingconsumerclient.auth.login">
-<code class="descclassname">dxlstreamingconsumerclient.auth.</code><code class="descname">login</code><span class="sig-paren">(</span><em>url</em>, <em>username</em>, <em>password</em>, <em>path_fragment='/identity/v1/login'</em>, <em>verify_cert_bundle=''</em><span class="sig-paren">)</span><a class="headerlink" href="#dxlstreamingconsumerclient.auth.login" title="Permalink to this definition">¶</a></dt>
+<dt id="dxlstreamingclient.auth.login">
+<code class="descclassname">dxlstreamingclient.auth.</code><code class="descname">login</code><span class="sig-paren">(</span><em>url</em>, <em>username</em>, <em>password</em>, <em>path_fragment='/identity/v1/login'</em>, <em>verify_cert_bundle=''</em><span class="sig-paren">)</span><a class="headerlink" href="#dxlstreamingclient.auth.login" title="Permalink to this definition">¶</a></dt>
 <dd><p>Make a login request to the supplied login url.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -84,9 +84,9 @@ is not validated.</li>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><ul class="first last simple">
-<li><a class="reference internal" href="#dxlstreamingconsumerclient.auth.TemporaryAuthenticationError" title="dxlstreamingconsumerclient.auth.TemporaryAuthenticationError"><strong>TemporaryAuthenticationError</strong></a> -- if an unexpected (but possibly
+<li><a class="reference internal" href="#dxlstreamingclient.auth.TemporaryAuthenticationError" title="dxlstreamingclient.auth.TemporaryAuthenticationError"><strong>TemporaryAuthenticationError</strong></a> -- if an unexpected (but possibly
 recoverable) authentication error occurs for the request.</li>
-<li><a class="reference internal" href="#dxlstreamingconsumerclient.auth.PermanentAuthenticationError" title="dxlstreamingconsumerclient.auth.PermanentAuthenticationError"><strong>PermanentAuthenticationError</strong></a> -- if the request fails due to the
+<li><a class="reference internal" href="#dxlstreamingclient.auth.PermanentAuthenticationError" title="dxlstreamingclient.auth.PermanentAuthenticationError"><strong>PermanentAuthenticationError</strong></a> -- if the request fails due to the
 user not being authenticated successfully or if the user is
 unauthorized to make the request.</li>
 </ul>
@@ -105,15 +105,15 @@ unauthorized to make the request.</li>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
   <h4>Previous topic</h4>
-  <p class="topless"><a href="dxlstreamingconsumerclient.html"
-                        title="previous chapter">dxlstreamingconsumerclient package</a></p>
+  <p class="topless"><a href="dxlstreamingclient.html"
+                        title="previous chapter">dxlstreamingclient package</a></p>
   <h4>Next topic</h4>
-  <p class="topless"><a href="dxlstreamingconsumerclient.channel.html"
-                        title="next chapter">dxlstreamingconsumerclient.channel module</a></p>
+  <p class="topless"><a href="dxlstreamingclient.channel.html"
+                        title="next chapter">dxlstreamingclient.channel module</a></p>
   <div role="note" aria-label="source link">
     <h3>This Page</h3>
     <ul class="this-page-menu">
-      <li><a href="_sources/dxlstreamingconsumerclient.auth.rst.txt"
+      <li><a href="_sources/dxlstreamingclient.auth.rst.txt"
             rel="nofollow">Show Source</a></li>
     </ul>
    </div>
@@ -143,13 +143,13 @@ unauthorized to make the request.</li>
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="dxlstreamingconsumerclient.channel.html" title="dxlstreamingconsumerclient.channel module"
+          <a href="dxlstreamingclient.channel.html" title="dxlstreamingclient.channel module"
              >next</a> |</li>
         <li class="right" >
-          <a href="dxlstreamingconsumerclient.html" title="dxlstreamingconsumerclient package"
+          <a href="dxlstreamingclient.html" title="dxlstreamingclient package"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">OpenDXL Streaming Consumer Client Library 0.1.0 documentation</a> &#187;</li>
-          <li class="nav-item nav-item-1"><a href="dxlstreamingconsumerclient.html" >dxlstreamingconsumerclient package</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">OpenDXL Streaming Client Library 0.1.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="dxlstreamingclient.html" >dxlstreamingclient package</a> &#187;</li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">

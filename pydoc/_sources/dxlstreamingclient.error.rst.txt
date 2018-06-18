@@ -1,0 +1,7 @@
+dxlstreamingclient.error module
+===============================
+
+.. automodule:: dxlstreamingclient.error
+    :members:
+    :undoc-members:
+    :show-inheritance:

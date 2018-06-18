@@ -1,0 +1,7 @@
+dxlstreamingclient.channel module
+=================================
+
+.. automodule:: dxlstreamingclient.channel
+    :members:
+    :undoc-members:
+    :show-inheritance:

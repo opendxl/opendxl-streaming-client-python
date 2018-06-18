@@ -1,7 +1,0 @@
-dxlstreamingconsumerclient.auth module
-======================================
-
-.. automodule:: dxlstreamingconsumerclient.auth
-    :members:
-    :undoc-members:
-    :show-inheritance:

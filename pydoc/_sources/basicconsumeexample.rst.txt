@@ -2,13 +2,13 @@ Basic Consume Example
 =====================
 
 This sample demonstrates how to establish a channel connection to the DXL
-streaming consumer service. Once the connection is established, the sample
+streaming service. Once the connection is established, the sample
 repeatedly consumes and displays available records for the consumer group.
 
 Prerequisites
 *************
 
-* A DXL streaming consumer service is available for the sample to connect to.
+* A DXL streaming service is available for the sample to connect to.
 * Credentials for a consumer are available for use with the sample.
 
 Setup
@@ -31,18 +31,18 @@ service channel:
         VERIFY_CERTIFICATE_BUNDLE = ""
 
 
-For testing purposes, you can use the ``fake_consumer_service`` Python tool
-embedded in the OpenDXL Streaming Consumer Client SDK to start up a local
-consumer service which includes some fake data for a single preconfigured
+For testing purposes, you can use the ``fake_streaming_service`` Python tool
+embedded in the OpenDXL Streaming Client SDK to start up a local
+streaming service which includes some fake data for a single preconfigured
 consumer group. The initial settings in the example above include the URL,
-credentials, and consumer group used by the ``fake_consumer_service``.
+credentials, and consumer group used by the ``fake_streaming_service``.
 
-To launch the ``fake_consumer_service`` tool, run the following command in
+To launch the ``fake_streaming_service`` tool, run the following command in
 a command window:
 
     .. code-block:: shell
 
-        python sample/fake_consumer_service.py
+        python sample/fake_streaming_service.py
 
 Messages like the following should appear in the command window:
 
@@ -68,7 +68,7 @@ The initial line in the output window should be similar to the following:
         2018-05-30 17:35:36,743 __main__ - INFO - Starting event loop
 
 As records are received by the sample, the contents of the message payloads
-should be displayed to the output window. Using the ``fake_consumer_service``,
+should be displayed to the output window. Using the ``fake_streaming_service``,
 for example, initial payloads similar to the following should appear:
 
     .. code-block:: shell
@@ -152,8 +152,8 @@ The majority of the sample code is shown below:
                         topics=CHANNEL_TOPIC_SUBSCRIPTIONS)
 
 
-The first step is to create a channel to the consumer service. The channel
-includes the URL to the consumer service, ``CHANNEL_URL``, and credentials
+The first step is to create a channel to the streaming service. The channel
+includes the URL to the streaming service, ``CHANNEL_URL``, and credentials
 that the client uses to authenticate itself to the service, ``CHANNEL_USERNAME``
 and ``CHANNEL_PASSWORD``.
 
@@ -168,8 +168,8 @@ for new records and would instead return.
 The final step is to call the ``run`` method. The ``run`` method establishes a
 consumer instance with the service, subscribes the consumer instance for events
 delivered to the ``topics`` included in the ``CHANNEL_TOPIC_SUBSCRIPTIONS``
-variable, and continuously polls the consumer service for available records. The
-payloads from any records which are received from the consumer service are
+variable, and continuously polls the streaming service for available records.
+The payloads from any records which are received from the streaming service are
 passed in a call to the ``process_callback`` function. Note that if no records
 are received from a poll attempt, an empty list of payloads is passed into the
 ``process_callback`` function.

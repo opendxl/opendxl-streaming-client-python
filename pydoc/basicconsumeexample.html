@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Basic Consume Example &#8212; OpenDXL Streaming Consumer Client Library 0.1.0 documentation</title>
+    <title>Basic Consume Example &#8212; OpenDXL Streaming Client Library 0.1.0 documentation</title>
     <link rel="stylesheet" href="_static/classic.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript" src="_static/documentation_options.js"></script>
@@ -15,7 +15,7 @@
     <script type="text/javascript" src="_static/doctools.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="dxlstreamingconsumerclient package" href="dxlstreamingconsumerclient.html" />
+    <link rel="next" title="dxlstreamingclient package" href="dxlstreamingclient.html" />
     <link rel="prev" title="Library Installation" href="installation.html" /> 
   </head><body>
     <div class="related" role="navigation" aria-label="related navigation">
@@ -28,12 +28,12 @@
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="dxlstreamingconsumerclient.html" title="dxlstreamingconsumerclient package"
+          <a href="dxlstreamingclient.html" title="dxlstreamingclient package"
              accesskey="N">next</a> |</li>
         <li class="right" >
           <a href="installation.html" title="Library Installation"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">OpenDXL Streaming Consumer Client Library 0.1.0 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">OpenDXL Streaming Client Library 0.1.0 documentation</a> &#187;</li> 
       </ul>
     </div>  
 
@@ -45,12 +45,12 @@
   <div class="section" id="basic-consume-example">
 <h1>Basic Consume Example<a class="headerlink" href="#basic-consume-example" title="Permalink to this headline">¶</a></h1>
 <p>This sample demonstrates how to establish a channel connection to the DXL
-streaming consumer service. Once the connection is established, the sample
+streaming service. Once the connection is established, the sample
 repeatedly consumes and displays available records for the consumer group.</p>
 <div class="section" id="prerequisites">
 <h2>Prerequisites<a class="headerlink" href="#prerequisites" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
-<li>A DXL streaming consumer service is available for the sample to connect to.</li>
+<li>A DXL streaming service is available for the sample to connect to.</li>
 <li>Credentials for a consumer are available for use with the sample.</li>
 </ul>
 </div>
@@ -72,15 +72,15 @@ service channel:</p>
 </pre></div>
 </div>
 </div></blockquote>
-<p>For testing purposes, you can use the <code class="docutils literal notranslate"><span class="pre">fake_consumer_service</span></code> Python tool
-embedded in the OpenDXL Streaming Consumer Client SDK to start up a local
-consumer service which includes some fake data for a single preconfigured
+<p>For testing purposes, you can use the <code class="docutils literal notranslate"><span class="pre">fake_streaming_service</span></code> Python tool
+embedded in the OpenDXL Streaming Client SDK to start up a local
+streaming service which includes some fake data for a single preconfigured
 consumer group. The initial settings in the example above include the URL,
-credentials, and consumer group used by the <code class="docutils literal notranslate"><span class="pre">fake_consumer_service</span></code>.</p>
-<p>To launch the <code class="docutils literal notranslate"><span class="pre">fake_consumer_service</span></code> tool, run the following command in
+credentials, and consumer group used by the <code class="docutils literal notranslate"><span class="pre">fake_streaming_service</span></code>.</p>
+<p>To launch the <code class="docutils literal notranslate"><span class="pre">fake_streaming_service</span></code> tool, run the following command in
 a command window:</p>
 <blockquote>
-<div><div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>python sample/fake_consumer_service.py
+<div><div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>python sample/fake_streaming_service.py
 </pre></div>
 </div>
 </div></blockquote>
@@ -108,7 +108,7 @@ as follows:</p>
 </div>
 </div></blockquote>
 <p>As records are received by the sample, the contents of the message payloads
-should be displayed to the output window. Using the <code class="docutils literal notranslate"><span class="pre">fake_consumer_service</span></code>,
+should be displayed to the output window. Using the <code class="docutils literal notranslate"><span class="pre">fake_streaming_service</span></code>,
 for example, initial payloads similar to the following should appear:</p>
 <blockquote>
 <div><div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="m">2018</span>-05-30 <span class="m">17</span>:35:36,754 __main__ - INFO - Received payloads:
@@ -191,8 +191,8 @@ a line similar to the following:</p>
 </pre></div>
 </div>
 </div></blockquote>
-<p>The first step is to create a channel to the consumer service. The channel
-includes the URL to the consumer service, <code class="docutils literal notranslate"><span class="pre">CHANNEL_URL</span></code>, and credentials
+<p>The first step is to create a channel to the streaming service. The channel
+includes the URL to the streaming service, <code class="docutils literal notranslate"><span class="pre">CHANNEL_URL</span></code>, and credentials
 that the client uses to authenticate itself to the service, <code class="docutils literal notranslate"><span class="pre">CHANNEL_USERNAME</span></code>
 and <code class="docutils literal notranslate"><span class="pre">CHANNEL_PASSWORD</span></code>.</p>
 <p>The example defines a <code class="docutils literal notranslate"><span class="pre">process_callback</span></code> function which is invoked with the
@@ -205,8 +205,8 @@ for new records and would instead return.</p>
 <p>The final step is to call the <code class="docutils literal notranslate"><span class="pre">run</span></code> method. The <code class="docutils literal notranslate"><span class="pre">run</span></code> method establishes a
 consumer instance with the service, subscribes the consumer instance for events
 delivered to the <code class="docutils literal notranslate"><span class="pre">topics</span></code> included in the <code class="docutils literal notranslate"><span class="pre">CHANNEL_TOPIC_SUBSCRIPTIONS</span></code>
-variable, and continuously polls the consumer service for available records. The
-payloads from any records which are received from the consumer service are
+variable, and continuously polls the streaming service for available records.
+The payloads from any records which are received from the streaming service are
 passed in a call to the <code class="docutils literal notranslate"><span class="pre">process_callback</span></code> function. Note that if no records
 are received from a poll attempt, an empty list of payloads is passed into the
 <code class="docutils literal notranslate"><span class="pre">process_callback</span></code> function.</p>
@@ -234,8 +234,8 @@ are received from a poll attempt, an empty list of payloads is passed into the
   <p class="topless"><a href="installation.html"
                         title="previous chapter">Library Installation</a></p>
   <h4>Next topic</h4>
-  <p class="topless"><a href="dxlstreamingconsumerclient.html"
-                        title="next chapter">dxlstreamingconsumerclient package</a></p>
+  <p class="topless"><a href="dxlstreamingclient.html"
+                        title="next chapter">dxlstreamingclient package</a></p>
   <div role="note" aria-label="source link">
     <h3>This Page</h3>
     <ul class="this-page-menu">
@@ -269,12 +269,12 @@ are received from a poll attempt, an empty list of payloads is passed into the
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="dxlstreamingconsumerclient.html" title="dxlstreamingconsumerclient package"
+          <a href="dxlstreamingclient.html" title="dxlstreamingclient package"
              >next</a> |</li>
         <li class="right" >
           <a href="installation.html" title="Library Installation"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">OpenDXL Streaming Consumer Client Library 0.1.0 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">OpenDXL Streaming Client Library 0.1.0 documentation</a> &#187;</li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
