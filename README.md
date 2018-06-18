@@ -1,21 +1,21 @@
-# OpenDXL Streaming Consumer Python Client Library
-[![Latest PyPI Version](https://img.shields.io/pypi/v/dxlstreamingconsumerclient.svg)](https://pypi.python.org/pypi/dxlstreamingconsumerclient)
+# OpenDXL Streaming Python Client Library
+[![Latest PyPI Version](https://img.shields.io/pypi/v/dxlstreamingclient.svg)](https://pypi.python.org/pypi/dxlstreamingclient)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-[![Build Status](https://travis-ci.org/opendxl/opendxl-streaming-consumer-client-python.png?branch=master)](https://travis-ci.org/opendxl/opendxl-streaming-consumer-client-python)
+[![Build Status](https://travis-ci.org/opendxl/opendxl-streaming-client-python.png?branch=master)](https://travis-ci.org/opendxl/opendxl-streaming-client-python)
 
 ## Overview
 
-The OpenDXL Streaming Consumer Python client library is used to consume records
+The OpenDXL Streaming Python client library is used to consume records
 from a
 [Data Exchange Layer](http://www.mcafee.com/us/solutions/data-exchange-layer.aspx)
-(DXL) Streaming Consumer Service.
+(DXL) Streaming Service.
 
-The DXL Streaming Consumer Service exposes a REST-based API that communicates
-with a back-end streaming platform (Kafka, Kinesis, etc.). The consumer service
+The DXL Streaming Service exposes a REST-based API that communicates with a
+back-end streaming platform (Kafka, Kinesis, etc.). The streaming service
 performs authentication and authorization and exposes methods to retrieve
 records.
 
-Concrete examples of DXL Streaming Consumer Services include the
+Concrete examples of DXL Streaming Services include the
 [McAfee Investigator](https://www.mcafee.com/enterprise/en-us/products/investigator.html)
 "Events feed" and the
 [McAfee ePolicy Orchestrator](https://www.mcafee.com/enterprise/en-au/products/epolicy-orchestrator.html)
@@ -24,28 +24,28 @@ Concrete examples of DXL Streaming Consumer Services include the
 ## Documentation
 
 See the
-[Wiki](https://github.com/opendxl/opendxl-streaming-consumer-client-python/wiki)
-for an overview of the OpenDXL Streaming Consumer Python client library and
+[Wiki](https://github.com/opendxl/opendxl-streaming-client-python/wiki)
+for an overview of the OpenDXL Streaming Python client library and
 examples.
 
 See the
-[OpenDXL Streaming Consumer Python Client Library Documentation](https://opendxl.github.io/opendxl-streaming-consumer-client-python/pydoc)
+[OpenDXL Streaming Python Client Library Documentation](https://opendxl.github.io/opendxl-streaming-client-python/pydoc)
 for installation instructions, API documentation, and examples.
 
 ## Installation
 
-To start using the OpenDXL Streaming Consumer Python Client Library:
+To start using the OpenDXL Streaming Python Client Library:
 
-* Download the [Latest Release](https://github.com/opendxl/opendxl-streaming-consumer-client-python/releases/latest)
+* Download the [Latest Release](https://github.com/opendxl/opendxl-streaming-client-python/releases/latest)
 * Extract the release .zip file
 * View the `README.html` file located at the root of the extracted files.
   * The `README` links to the documentation which includes installation instructions, API details, and samples.
-  * The SDK documentation is also available on-line [here](https://opendxl.github.io/opendxl-streaming-consumer-client-python/pydoc).
+  * The SDK documentation is also available on-line [here](https://opendxl.github.io/opendxl-streaming-client-python/pydoc).
 
 ## Bugs and Feedback
 
 For bugs, questions and discussions please use the
-[Github Issues](https://github.com/opendxl/opendxl-streaming-consumer-client-python/issues).
+[Github Issues](https://github.com/opendxl/opendxl-streaming-client-python/issues).
 
 ## LICENSE
 

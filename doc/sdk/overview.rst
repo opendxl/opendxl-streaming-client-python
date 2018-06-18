@@ -1,17 +1,17 @@
 Overview
 ========
 
-The OpenDXL Streaming Consumer Python client library is used to consume records
+The OpenDXL Streaming Python client library is used to consume records
 from a
 `Data Exchange Layer <http://www.mcafee.com/us/solutions/data-exchange-layer.aspx>`_
-(DXL) Streaming Consumer Service.
+(DXL) Streaming Service.
 
-The DXL Streaming Consumer Service exposes a REST-based API that communicates
-with a back-end streaming platform (Kafka, Kinesis, etc.). The consumer service
+The DXL Streaming Service exposes a REST-based API that communicates
+with a back-end streaming platform (Kafka, Kinesis, etc.). The streaming service
 performs authentication and authorization and exposes methods to retrieve
 records.
 
-Concrete examples of DXL Streaming Consumer Services include the
+Concrete examples of DXL Streaming Services include the
 `McAfee Investigator <https://www.mcafee.com/enterprise/en-us/products/investigator.html>`_
 "Events feed" and the
 `McAfee ePolicy Orchestrator <https://www.mcafee.com/enterprise/en-au/products/epolicy-orchestrator.html>`_

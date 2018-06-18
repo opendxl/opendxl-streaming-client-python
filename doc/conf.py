@@ -30,14 +30,14 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = "OpenDXL Streaming Consumer Client Library"
+project = "OpenDXL Streaming Client Library"
 copyright = "2018, McAfee LLC"
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
 # built documents.
 #
-VERSION = __import__('dxlstreamingconsumerclient').get_version()
+VERSION = __import__('dxlstreamingclient').get_version()
 # The short X.Y version.
 version = VERSION
 # The full version, including alpha/beta/rc tags.
@@ -61,6 +61,6 @@ htmlhelp_basename = 'sphinxdoc'
 
 autoclass_content = 'both'
 
-modindex_common_prefix = ['dxlstreamingconsumerclient.']
+modindex_common_prefix = ['dxlstreamingclient.']
 
 html_use_smartypants = False

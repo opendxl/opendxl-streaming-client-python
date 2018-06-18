@@ -1,4 +1,4 @@
-""" Setup script for the dxlstreamingconsumerclient package """
+""" Setup script for the dxlstreamingclient package """
 
 # pylint: disable=no-member, no-name-in-module, import-error, wrong-import-order
 # pylint: disable=missing-docstring, no-self-use
@@ -18,7 +18,7 @@ setuptools.command.sdist.sdist.run = distutils.command.sdist.sdist.run
 
 VERSION_INFO = {}
 CWD = os.path.abspath(os.path.dirname(__file__))
-with open(os.path.join(CWD, "dxlstreamingconsumerclient", "_version.py")) as f:
+with open(os.path.join(CWD, "dxlstreamingclient", "_version.py")) as f:
     exec(f.read(), VERSION_INFO) # pylint: disable=exec-used
 
 class LintCommand(Command):
@@ -38,7 +38,7 @@ class LintCommand(Command):
         self.announce("Running pylint for library source files, tools, and tests",
                       level=distutils.log.INFO)
         subprocess.check_call(
-            ["pylint", "dxlstreamingconsumerclient", "tests"] +
+            ["pylint", "dxlstreamingclient", "tests"] +
             glob.glob("*.py"))
         self.announce("Running pylint for samples", level=distutils.log.INFO)
         subprocess.check_call(["pylint"] + glob.glob("sample/*.py") +
@@ -67,7 +67,7 @@ TEST_REQUIREMENTS = ["nose", "pylint"]
 
 setup(
     # Package name:
-    name="dxlstreamingconsumerclient",
+    name="dxlstreamingclient",
 
     # Version number:
     version=VERSION_INFO["__version__"],
@@ -101,17 +101,17 @@ setup(
 
     # Packages
     packages=[
-        "dxlstreamingconsumerclient",
-        "dxlstreamingconsumerclient._config",
-        "dxlstreamingconsumerclient._config.sample"],
+        "dxlstreamingclient",
+        "dxlstreamingclient._config",
+        "dxlstreamingclient._config.sample"],
 
     package_data={
-        "dxlstreamingconsumerclient._config.sample" : ['*']},
+        "dxlstreamingclient._config.sample" : ['*']},
 
     # Details
     url="http://www.mcafee.com",
 
-    description="OpenDXL Streaming Consumer client library",
+    description="OpenDXL Streaming client library",
 
     long_description=open('README').read(),
 

@@ -30,8 +30,8 @@ def replace(file_path, pattern, subst):
 
 print("Starting dist.\n")
 
-VERSION = __import__('dxlstreamingconsumerclient').get_version()
-RELEASE_NAME = "dxlstreamingconsumerclient-python-dist-" + str(VERSION)
+VERSION = __import__('dxlstreamingclient').get_version()
+RELEASE_NAME = "dxlstreamingclient-python-dist-" + str(VERSION)
 
 DIST_PY_FILE_LOCATION = os.path.dirname(os.path.realpath(__file__))
 DIST_DIRECTORY = os.path.join(DIST_PY_FILE_LOCATION, "dist")
@@ -55,7 +55,7 @@ subprocess.check_call(["sphinx-apidoc",
                        "--separate",
                        "--no-toc",
                        "--output-dir=" + DIST_DOCTMP_DIR,
-                       os.path.join(DIST_PY_FILE_LOCATION, "dxlstreamingconsumerclient")])
+                       os.path.join(DIST_PY_FILE_LOCATION, "dxlstreamingclient")])
 
 print("\nCopying conf.py, docutils.conf, and sdk directory\n")
 copy_file(os.path.join(DIST_PY_FILE_LOCATION, "doc", "conf.py"),
@@ -108,8 +108,8 @@ copy_tree(DIST_DIRECTORY, DIST_RELEASE_DIR)
 print("\nRemoving build directory\n")
 remove_tree(os.path.join(DIST_PY_FILE_LOCATION, "build"))
 
-print("\nRemoving dxlstreamingconsumerclient.egg-info\n")
-remove_tree(os.path.join(DIST_PY_FILE_LOCATION, "dxlstreamingconsumerclient.egg-info"))
+print("\nRemoving dxlstreamingclient.egg-info\n")
+remove_tree(os.path.join(DIST_PY_FILE_LOCATION, "dxlstreamingclient.egg-info"))
 
 print("\nMaking dist zip\n")
 make_archive(DIST_RELEASE_DIR, "zip", DIST_DIRECTORY, RELEASE_NAME)

@@ -1,5 +1,5 @@
-OpenDXL Streaming Consumer Client Library
-=========================================
+OpenDXL Streaming Client Library
+================================
 
 Introduction
 ------------
@@ -33,4 +33,4 @@ Python API
 .. toctree::
 	:titlesonly:
 
-	dxlstreamingconsumerclient
+	dxlstreamingclient

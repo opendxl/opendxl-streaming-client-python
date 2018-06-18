@@ -5,9 +5,9 @@ import json
 import threading
 import time
 from mock import call, patch, MagicMock
-from dxlstreamingconsumerclient.channel import \
+from dxlstreamingclient.channel import \
     (ConsumerError, Channel, ChannelAuth)
-from dxlstreamingconsumerclient.error import TemporaryError
+from dxlstreamingclient.error import TemporaryError
 
 
 def create_record(topic, payload, partition, offset):

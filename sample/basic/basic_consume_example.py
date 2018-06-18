@@ -3,7 +3,7 @@ import json
 import os
 import sys
 
-from dxlstreamingconsumerclient.channel import Channel, ChannelAuth
+from dxlstreamingclient.channel import Channel, ChannelAuth
 
 root_dir = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(root_dir + "/../..")
@@ -30,7 +30,7 @@ CHANNEL_TOPIC_SUBSCRIPTIONS = ["case-mgmt-events"]
 VERIFY_CERTIFICATE_BUNDLE = ""
 
 # This constant controls the frequency (in seconds) at which the channel 'run'
-# call below polls the consumer service for new records.
+# call below polls the streaming service for new records.
 WAIT_BETWEEN_QUERIES = 5
 
 # Create a new channel object

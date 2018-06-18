@@ -38,7 +38,7 @@ def _retry(f):
 class ConsumerError(TemporaryError):
     """
     Error raised when a channel operation fails due to the associated consumer
-    not being recognized by the consumer service.
+    not being recognized by the streaming service.
     """
     pass
 
@@ -86,7 +86,7 @@ class ChannelAuth(requests.auth.AuthBase):
 class Channel(object):
     """
     The :class:`Channel` class is responsible for all communication with the
-    consumer service.
+    streaming service.
 
     The following example demonstrates the creation of a :class:`Channel`
     instance and creating a consumer for the consumer group:
@@ -108,7 +108,7 @@ class Channel(object):
     """
 
     # Default number of seconds to wait between consume queries made to the
-    # consumer service
+    # streaming service
     _DEFAULT_WAIT_BETWEEN_QUERIES = 30
 
     def __init__(self, base, auth,
@@ -121,14 +121,14 @@ class Channel(object):
         """
         Constructor parameters:
 
-        :param str base: Base URL at which the consumer service resides.
+        :param str base: Base URL at which the streaming service resides.
         :param requests.auth.AuthBase auth: Authentication object to use
             for channel requests.
         :param str consumer_group: Consumer group to subscribe the channel
             consumer to.
-        :param str path_prefix: Path to append to consumer service requests.
+        :param str path_prefix: Path to append to streaming service requests.
         :param str offset: Offset for the next record to retrieve from the
-            consumer service for the new :meth:`consume` call. Must be one
+            streaming service for the new :meth:`consume` call. Must be one
             of 'latest', 'earliest', or 'none'.
         :param int timeout: Channel session timeout (in seconds).
         :param bool retry_on_fail: Whether or not the channel will
