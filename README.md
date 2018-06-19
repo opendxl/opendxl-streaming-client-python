@@ -15,11 +15,9 @@ back-end streaming platform (Kafka, Kinesis, etc.). The streaming service
 performs authentication and authorization and exposes methods to retrieve
 records.
 
-Concrete examples of DXL Streaming Services include the
+One concrete example of a DXL Streaming Service is the
 [McAfee Investigator](https://www.mcafee.com/enterprise/en-us/products/investigator.html)
-"Events feed" and the
-[McAfee ePolicy Orchestrator](https://www.mcafee.com/enterprise/en-au/products/epolicy-orchestrator.html)
-"Threat event feed".
+"Events feed".
 
 ## Documentation
 
