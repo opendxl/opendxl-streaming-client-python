@@ -49,7 +49,7 @@
 service.</p>
 <dl class="class">
 <dt id="dxlstreamingclient.channel.Channel">
-<em class="property">class </em><code class="descclassname">dxlstreamingclient.channel.</code><code class="descname">Channel</code><span class="sig-paren">(</span><em>base</em>, <em>auth</em>, <em>consumer_group</em>, <em>path_prefix='/databus/consumer-service/v1'</em>, <em>offset='latest'</em>, <em>timeout=300</em>, <em>retry_on_fail=True</em>, <em>verify_cert_bundle=''</em><span class="sig-paren">)</span><a class="headerlink" href="#dxlstreamingclient.channel.Channel" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">dxlstreamingclient.channel.</code><code class="descname">Channel</code><span class="sig-paren">(</span><em>base</em>, <em>auth</em>, <em>consumer_group</em>, <em>path_prefix='/databus/consumer-service/v1'</em>, <em>offset='latest'</em>, <em>request_timeout=None</em>, <em>session_timeout=None</em>, <em>retry_on_fail=True</em>, <em>verify_cert_bundle=''</em><span class="sig-paren">)</span><a class="headerlink" href="#dxlstreamingclient.channel.Channel" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>The <a class="reference internal" href="#dxlstreamingclient.channel.Channel" title="dxlstreamingclient.channel.Channel"><code class="xref py py-class docutils literal notranslate"><span class="pre">Channel</span></code></a> class is responsible for all communication with the
 streaming service.</p>
@@ -83,7 +83,22 @@ consumer to.</li>
 <li><strong>offset</strong> (<em>str</em>) -- Offset for the next record to retrieve from the
 streaming service for the new <a class="reference internal" href="#dxlstreamingclient.channel.Channel.consume" title="dxlstreamingclient.channel.Channel.consume"><code class="xref py py-meth docutils literal notranslate"><span class="pre">consume()</span></code></a> call. Must be one
 of 'latest', 'earliest', or 'none'.</li>
-<li><strong>timeout</strong> (<em>int</em>) -- Channel session timeout (in seconds).</li>
+<li><strong>request_timeout</strong> (<em>int</em>) -- Channel request timeout (in seconds).
+If set to <cite>None</cite> (the default), the timeout is set automatically by
+the streaming service. Note that if a value is set for this, a
+value should exceed that of the <cite>session_timeout</cite> value. Otherwise,
+the channel may fail to create new consumers properly. To ensure
+that the <cite>request_timeout</cite> value exceeds the <cite>session_timeout</cite>
+value, either both (or neither) of the <cite>request_timeout</cite> and
+<cite>session_timeout</cite> values should be set.</li>
+<li><strong>session_timeout</strong> (<em>int</em>) -- Channel session timeout (in seconds).
+If set to <cite>None</cite> (the default), the timeout is set automatically by
+the streaming service. Note that if a value is set for this, the
+value should be less than that of the <cite>request_timeout</cite> value.
+Otherwise, the channel may fail to create new consumers properly.
+To ensure that the <cite>session_timeout</cite> value is less than that of
+the <cite>session_timeout</cite> value, either both (or neither) of the
+<cite>request_timeout</cite> and <cite>session_timeout</cite> values should be set.</li>
 <li><strong>retry_on_fail</strong> (<em>bool</em>) -- Whether or not the channel will
 automatically retry a call which failed due to a temporary error.</li>
 <li><strong>verify_cert_bundle</strong> (<em>str</em>) -- Path to a CA bundle file containing
