@@ -6,6 +6,7 @@ service.
 from __future__ import absolute_import
 from functools import wraps
 import base64
+import copy
 import json
 import logging
 import threading
@@ -111,6 +112,12 @@ class Channel(object):
     # streaming service
     _DEFAULT_WAIT_BETWEEN_QUERIES = 30
 
+    # Constants for consumer config settings
+    _AUTO_OFFSET_RESET_CONFIG_SETTING = "auto.offset.reset"
+    _ENABLE_AUTO_COMMIT_CONFIG_SETTING = "enable.auto.commit"
+    _REQUEST_TIMEOUT_CONFIG_SETTING = "request.timeout.ms"
+    _SESSION_TIMEOUT_CONFIG_SETTING = "session.timeout.ms"
+
     def __init__(self, base, auth,
                  consumer_group,
                  path_prefix="/databus/consumer-service/v1",
@@ -118,7 +125,8 @@ class Channel(object):
                  request_timeout=None,
                  session_timeout=None,
                  retry_on_fail=True,
-                 verify_cert_bundle=""):
+                 verify_cert_bundle="",
+                 extra_configs=None):
         """
         Constructor parameters:
 
@@ -164,6 +172,12 @@ class Channel(object):
             the certificate of the authentication server being connected to was
             signed by a valid authority. If set to an empty string, the server
             certificate is not validated.
+        :param dict extra_configs: Dictionary of key/value pairs containing
+            any custom configuration settings which should be sent to the
+            streaming service when a consumer is created. Note that any
+            values specified for the `offset`, `request_timeout`, and/or
+            `session_timeout` parameters will override the corresponding
+            values, if specified, in the `extra_configs` parameter.
         """
         self._base = base
         self._path_prefix = path_prefix
@@ -177,13 +191,24 @@ class Channel(object):
             raise PermanentError(
                 "Value for 'offset' must be one of: {}".format(
                     ', '.join(offset_values)))
-        self._offset = offset
 
-        # Convert from seconds to milliseconds
-        self._request_timeout = request_timeout * 1000 \
-            if request_timeout else request_timeout
-        self._session_timeout = session_timeout * 1000 \
-            if session_timeout else session_timeout
+        # Setup customer configs from supplied parameters
+        self._configs = copy.deepcopy(extra_configs) if extra_configs else {}
+
+        if self._ENABLE_AUTO_COMMIT_CONFIG_SETTING not in self._configs:
+            # this has to be false for now
+            self._configs[self._ENABLE_AUTO_COMMIT_CONFIG_SETTING] = "false"
+        self._configs[self._AUTO_OFFSET_RESET_CONFIG_SETTING] = offset
+
+        if session_timeout is not None:
+            # Convert from seconds to milliseconds
+            self._configs[self._SESSION_TIMEOUT_CONFIG_SETTING] = str(
+                session_timeout * 1000)
+
+        if request_timeout is not None:
+            # Convert from seconds to milliseconds
+            self._configs[self._REQUEST_TIMEOUT_CONFIG_SETTING] = str(
+                request_timeout * 1000)
 
         # state variables
         self._consumer_id = None
@@ -278,18 +303,8 @@ class Channel(object):
             path="consumers").url
         payload = {
             "consumerGroup": self._consumer_group,
-            "configs": {
-                "enable.auto.commit": "false",  # this has to be false for now
-                "auto.offset.reset": self._offset
-            }
+            "configs": self._configs
         }
-
-        if self._session_timeout is not None:
-            payload["configs"]["session.timeout.ms"] = \
-                str(self._session_timeout)
-        if self._request_timeout is not None:
-            payload["configs"]["request.timeout.ms"] = \
-                str(self._request_timeout)
 
         res = self._post_request(url, json=payload)
 
