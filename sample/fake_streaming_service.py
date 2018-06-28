@@ -13,7 +13,6 @@ import ssl
 import string
 import sys
 import threading
-import time
 
 try:
     from http.server import HTTPServer, SimpleHTTPRequestHandler
@@ -356,9 +355,6 @@ def _consumer_auth(f):
                     consumer_instance_id)
             if not consumer:
                 response = 404, "Unknown consumer"
-            elif time.time() >= consumer["sessionExpirationTime"]:
-                consumer_service._active_consumers.pop(consumer_instance_id)
-                response = 403, "Consumer session expired"
             elif handler.headers.get(
                     "Cookie") != "{}={}".format(COOKIE_NAME,
                                                 consumer["cookie"]):
@@ -397,13 +393,8 @@ def _create_consumer(body, consumer_service, **kwargs): # pylint: disable=unused
         consumer_id = random_val()
         cookie_value = random_val()
         with consumer_service._lock:
-            session_create_time = time.time()
             consumer_info = {
                 "cookie": cookie_value,
-                "sessionCreateTime": session_create_time,
-                "sessionExpirationTime":
-                    ((session_create_time * 1000) +
-                     int(body["configs"]["session.timeout.ms"])) // 1000,
                 "subscribedTopics": []
             }
             LOG.debug("New consumer info: %s",

@@ -113,9 +113,10 @@ class Channel(object):
 
     def __init__(self, base, auth,
                  consumer_group,
-                 path_prefix='/databus/consumer-service/v1',
-                 offset='latest',  # earliest
-                 timeout=300,
+                 path_prefix="/databus/consumer-service/v1",
+                 offset="latest",  # earliest
+                 request_timeout=None,
+                 session_timeout=None,
                  retry_on_fail=True,
                  verify_cert_bundle=""):
         """
@@ -130,7 +131,32 @@ class Channel(object):
         :param str offset: Offset for the next record to retrieve from the
             streaming service for the new :meth:`consume` call. Must be one
             of 'latest', 'earliest', or 'none'.
-        :param int timeout: Channel session timeout (in seconds).
+        :param int request_timeout: The configuration controls the maximum
+            amount of time the client (consumer) will wait for the broker
+            response of a request. If the response is not received before the
+            request timeout elapses the client may resend the request or fail
+            the request if retries are exhausted. If set to `None` (the
+            default), the request timeout is determined automatically by
+            the streaming service. Note that if a value is set for the request
+            timeout, the value should exceed the `session_timeout`. Otherwise,
+            the streaming service may fail to create new consumers properly. To
+            ensure that the request timeout is greater than the
+            `session_timeout`, values for either both (or neither) of the
+            `request_timeout` and `session_timeout` parameters should be
+            specified.
+        :param int session_timeout: The timeout (in seconds) used to detect
+            channel consumer failures. The consumer sends periodic heartbeats
+            to indicate its liveness to the broker. If no heartbeats are
+            received by the broker before the expiration of this session
+            timeout, then the broker may remove this consumer from the group.
+            If set to `None` (the default), the session timeout is determined
+            automatically by the streaming service. Note that if a value is set
+            for the session timeout, the value should be less than the
+            `request_timeout`. Otherwise, the streaming service may fail to
+            create new consumers properly. To ensure that the session timeout is
+            less than the `request_timeout`, values for either both (or neither)
+            of the `request_timeout` and `session_timeout` parameters should be
+            specified.
         :param bool retry_on_fail: Whether or not the channel will
             automatically retry a call which failed due to a temporary error.
         :param str verify_cert_bundle: Path to a CA bundle file containing
@@ -152,7 +178,12 @@ class Channel(object):
                 "Value for 'offset' must be one of: {}".format(
                     ', '.join(offset_values)))
         self._offset = offset
-        self._timeout = timeout
+
+        # Convert from seconds to milliseconds
+        self._request_timeout = request_timeout * 1000 \
+            if request_timeout else request_timeout
+        self._session_timeout = session_timeout * 1000 \
+            if session_timeout else session_timeout
 
         # state variables
         self._consumer_id = None
@@ -246,13 +277,20 @@ class Channel(object):
         url = furl(self._base).add(path=self._path_prefix).add(
             path="consumers").url
         payload = {
-            'consumerGroup': self._consumer_group,
-            'configs': {
-                'session.timeout.ms': str(self._timeout * 1000),
-                'enable.auto.commit': 'false',  # this has to be false for now
-                'auto.offset.reset': self._offset
+            "consumerGroup": self._consumer_group,
+            "configs": {
+                "enable.auto.commit": "false",  # this has to be false for now
+                "auto.offset.reset": self._offset
             }
         }
+
+        if self._session_timeout is not None:
+            payload["configs"]["session.timeout.ms"] = \
+                str(self._session_timeout)
+        if self._request_timeout is not None:
+            payload["configs"]["request.timeout.ms"] = \
+                str(self._request_timeout)
+
         res = self._post_request(url, json=payload)
 
         if res.status_code in [200, 201, 202, 204]:

@@ -180,7 +180,8 @@ class Test(unittest.TestCase):
                               consumer_group=self.consumer_group,
                               retry_on_fail=False,
                               verify_cert_bundle="cabundle.crt",
-                              timeout=60,
+                              request_timeout=70,
+                              session_timeout=60,
                               offset="earliest")
 
             self.assertEqual(channel._session.verify, "cabundle.crt")
@@ -194,6 +195,7 @@ class Test(unittest.TestCase):
                 json={
                     "consumerGroup": self.consumer_group,
                     "configs": {
+                        "request.timeout.ms": "70000",
                         "session.timeout.ms": "60000",
                         "enable.auto.commit": "false",
                         "auto.offset.reset": "earliest"
@@ -272,7 +274,6 @@ class Test(unittest.TestCase):
                  json={
                      "consumerGroup": self.consumer_group,
                      "configs": {
-                         "session.timeout.ms": "300000",
                          "auto.offset.reset": "latest",
                          "enable.auto.commit": "false"}}),
             call("post",
@@ -302,7 +303,6 @@ class Test(unittest.TestCase):
                  json={
                      "consumerGroup": self.consumer_group,
                      "configs": {
-                         "session.timeout.ms": "300000",
                          "auto.offset.reset": "latest",
                          "enable.auto.commit": "false"}}),
             call("post",
