@@ -182,7 +182,12 @@ class Test(unittest.TestCase):
                               verify_cert_bundle="cabundle.crt",
                               request_timeout=70,
                               session_timeout=60,
-                              offset="earliest")
+                              offset="earliest",
+                              extra_configs={
+                                  "enable.auto.commit": "true",
+                                  "one.extra.setting": "one extra value",
+                                  "another.extra.setting": 42
+                              })
 
             self.assertEqual(channel._session.verify, "cabundle.crt")
 
@@ -197,8 +202,10 @@ class Test(unittest.TestCase):
                     "configs": {
                         "request.timeout.ms": "70000",
                         "session.timeout.ms": "60000",
-                        "enable.auto.commit": "false",
-                        "auto.offset.reset": "earliest"
+                        "enable.auto.commit": "true",
+                        "auto.offset.reset": "earliest",
+                        "one.extra.setting": "one extra value",
+                        "another.extra.setting": 42
                     }
                 }
             )
