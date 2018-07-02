@@ -49,7 +49,7 @@
 service.</p>
 <dl class="class">
 <dt id="dxlstreamingclient.channel.Channel">
-<em class="property">class </em><code class="descclassname">dxlstreamingclient.channel.</code><code class="descname">Channel</code><span class="sig-paren">(</span><em>base</em>, <em>auth</em>, <em>consumer_group</em>, <em>path_prefix='/databus/consumer-service/v1'</em>, <em>offset='latest'</em>, <em>request_timeout=None</em>, <em>session_timeout=None</em>, <em>retry_on_fail=True</em>, <em>verify_cert_bundle=''</em><span class="sig-paren">)</span><a class="headerlink" href="#dxlstreamingclient.channel.Channel" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">dxlstreamingclient.channel.</code><code class="descname">Channel</code><span class="sig-paren">(</span><em>base</em>, <em>auth</em>, <em>consumer_group</em>, <em>path_prefix='/databus/consumer-service/v1'</em>, <em>offset='latest'</em>, <em>request_timeout=None</em>, <em>session_timeout=None</em>, <em>retry_on_fail=True</em>, <em>verify_cert_bundle=''</em>, <em>extra_configs=None</em><span class="sig-paren">)</span><a class="headerlink" href="#dxlstreamingclient.channel.Channel" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>The <a class="reference internal" href="#dxlstreamingclient.channel.Channel" title="dxlstreamingclient.channel.Channel"><code class="xref py py-class docutils literal notranslate"><span class="pre">Channel</span></code></a> class is responsible for all communication with the
 streaming service.</p>
@@ -83,22 +83,32 @@ consumer to.</li>
 <li><strong>offset</strong> (<em>str</em>) -- Offset for the next record to retrieve from the
 streaming service for the new <a class="reference internal" href="#dxlstreamingclient.channel.Channel.consume" title="dxlstreamingclient.channel.Channel.consume"><code class="xref py py-meth docutils literal notranslate"><span class="pre">consume()</span></code></a> call. Must be one
 of 'latest', 'earliest', or 'none'.</li>
-<li><strong>request_timeout</strong> (<em>int</em>) -- Channel request timeout (in seconds).
-If set to <cite>None</cite> (the default), the timeout is set automatically by
-the streaming service. Note that if a value is set for this, a
-value should exceed that of the <cite>session_timeout</cite> value. Otherwise,
-the channel may fail to create new consumers properly. To ensure
-that the <cite>request_timeout</cite> value exceeds the <cite>session_timeout</cite>
-value, either both (or neither) of the <cite>request_timeout</cite> and
-<cite>session_timeout</cite> values should be set.</li>
-<li><strong>session_timeout</strong> (<em>int</em>) -- Channel session timeout (in seconds).
-If set to <cite>None</cite> (the default), the timeout is set automatically by
-the streaming service. Note that if a value is set for this, the
-value should be less than that of the <cite>request_timeout</cite> value.
-Otherwise, the channel may fail to create new consumers properly.
-To ensure that the <cite>session_timeout</cite> value is less than that of
-the <cite>session_timeout</cite> value, either both (or neither) of the
-<cite>request_timeout</cite> and <cite>session_timeout</cite> values should be set.</li>
+<li><strong>request_timeout</strong> (<em>int</em>) -- The configuration controls the maximum
+amount of time the client (consumer) will wait for the broker
+response of a request. If the response is not received before the
+request timeout elapses the client may resend the request or fail
+the request if retries are exhausted. If set to <cite>None</cite> (the
+default), the request timeout is determined automatically by
+the streaming service. Note that if a value is set for the request
+timeout, the value should exceed the <cite>session_timeout</cite>. Otherwise,
+the streaming service may fail to create new consumers properly. To
+ensure that the request timeout is greater than the
+<cite>session_timeout</cite>, values for either both (or neither) of the
+<cite>request_timeout</cite> and <cite>session_timeout</cite> parameters should be
+specified.</li>
+<li><strong>session_timeout</strong> (<em>int</em>) -- The timeout (in seconds) used to detect
+channel consumer failures. The consumer sends periodic heartbeats
+to indicate its liveness to the broker. If no heartbeats are
+received by the broker before the expiration of this session
+timeout, then the broker may remove this consumer from the group.
+If set to <cite>None</cite> (the default), the session timeout is determined
+automatically by the streaming service. Note that if a value is set
+for the session timeout, the value should be less than the
+<cite>request_timeout</cite>. Otherwise, the streaming service may fail to
+create new consumers properly. To ensure that the session timeout is
+less than the <cite>request_timeout</cite>, values for either both (or neither)
+of the <cite>request_timeout</cite> and <cite>session_timeout</cite> parameters should be
+specified.</li>
 <li><strong>retry_on_fail</strong> (<em>bool</em>) -- Whether or not the channel will
 automatically retry a call which failed due to a temporary error.</li>
 <li><strong>verify_cert_bundle</strong> (<em>str</em>) -- Path to a CA bundle file containing
@@ -106,6 +116,12 @@ certificates of trusted CAs. The CA bundle is used to validate that
 the certificate of the authentication server being connected to was
 signed by a valid authority. If set to an empty string, the server
 certificate is not validated.</li>
+<li><strong>extra_configs</strong> (<em>dict</em>) -- Dictionary of key/value pairs containing
+any custom configuration settings which should be sent to the
+streaming service when a consumer is created. Note that any
+values specified for the <cite>offset</cite>, <cite>request_timeout</cite>, and/or
+<cite>session_timeout</cite> parameters will override the corresponding
+values, if specified, in the <cite>extra_configs</cite> parameter.</li>
 </ul>
 </td>
 </tr>
@@ -113,7 +129,7 @@ certificate is not validated.</li>
 </table>
 <dl class="method">
 <dt id="dxlstreamingclient.channel.Channel.commit">
-<code class="descname">commit</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#dxlstreamingclient.channel.Channel.commit" title="Permalink to this definition">¶</a></dt>
+<code class="descname">commit</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#dxlstreamingclient.channel.Channel.commit" title="Permalink to this definition">¶</a></dt>
 <dd><p>Commits the record offsets to the channel</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -135,7 +151,7 @@ to False.</li>
 
 <dl class="method">
 <dt id="dxlstreamingclient.channel.Channel.consume">
-<code class="descname">consume</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#dxlstreamingclient.channel.Channel.consume" title="Permalink to this definition">¶</a></dt>
+<code class="descname">consume</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#dxlstreamingclient.channel.Channel.consume" title="Permalink to this definition">¶</a></dt>
 <dd><p>Consumes records from all the subscribed topics</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -165,7 +181,7 @@ records returned from the server.</p>
 
 <dl class="method">
 <dt id="dxlstreamingclient.channel.Channel.create">
-<code class="descname">create</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#dxlstreamingclient.channel.Channel.create" title="Permalink to this definition">¶</a></dt>
+<code class="descname">create</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#dxlstreamingclient.channel.Channel.create" title="Permalink to this definition">¶</a></dt>
 <dd><p>Creates a new consumer on the consumer group</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -288,7 +304,7 @@ call is active, this function blocks until the run has been completed.</p>
 
 <dl class="method">
 <dt id="dxlstreamingclient.channel.Channel.subscribe">
-<code class="descname">subscribe</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#dxlstreamingclient.channel.Channel.subscribe" title="Permalink to this definition">¶</a></dt>
+<code class="descname">subscribe</code><span class="sig-paren">(</span><em>topics</em><span class="sig-paren">)</span><a class="headerlink" href="#dxlstreamingclient.channel.Channel.subscribe" title="Permalink to this definition">¶</a></dt>
 <dd><p>Subscribes the consumer to a list of topics</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
