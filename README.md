@@ -43,7 +43,7 @@ To start using the OpenDXL Streaming Python Client Library:
 ## Bugs and Feedback
 
 For bugs, questions and discussions please use the
-[Github Issues](https://github.com/opendxl/opendxl-streaming-client-python/issues).
+[GitHub Issues](https://github.com/opendxl/opendxl-streaming-client-python/issues).
 
 ## LICENSE
 
