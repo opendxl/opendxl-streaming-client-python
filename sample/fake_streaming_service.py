@@ -31,7 +31,9 @@ USE_SSL = False
 REQUESTS_PER_TOKEN = 25
 RUN_CHECK_WAIT = 5
 MAX_SHUTDOWN_WAIT = 10
-PATH_PREFIX = "/databus/consumer-service/v1"
+
+CONSUMER_PATH_PREFIX = "/databus/consumer-service/v1"
+PRODUCER_PATH_PREFIX = "/databus/cloudproxy/v1"
 
 AUTH_USER = "me"
 AUTH_PASSWORD = "secret"
@@ -41,9 +43,12 @@ AUTH_USER_HEADER = "Basic {}".format(base64.b64encode(
 COOKIE_NAME = "AWSALB"
 CONSUMER_GROUP = "sample_consumer_group"
 
+PARTITION = 1
+INITIAL_OFFSET = 100
 
 def encode_payload(obj):
     return base64.b64encode(json.dumps(obj).encode()).decode()
+
 
 DEFAULT_RECORDS = [
     {
@@ -75,8 +80,8 @@ DEFAULT_RECORDS = [
                     }
             })
         },
-        "partition": 1,
-        "offset": 100
+        "partition": PARTITION,
+        "offset": INITIAL_OFFSET
     },
     {
         "routingData": {
@@ -108,16 +113,20 @@ DEFAULT_RECORDS = [
                     }
             })
         },
-        "partition": 1,
-        "offset": 101
+        "partition": PARTITION,
+        "offset": INITIAL_OFFSET + 1
     }
 ]
 
 LOG = logging.getLogger(__name__)
 
 
-def create_service_path(subpath):
-    return "^{}/{}$".format(PATH_PREFIX, subpath)
+def create_consumer_service_path(subpath):
+    return "^{}/{}$".format(CONSUMER_PATH_PREFIX, subpath)
+
+
+def create_producer_service_path(subpath):
+    return "^{}/{}$".format(PRODUCER_PATH_PREFIX, subpath)
 
 
 def consumer_service_handler(consumer_service):
@@ -126,16 +135,17 @@ def consumer_service_handler(consumer_service):
             self._consumer_service = consumer_service
             self._routes = {
                 "^/identity/v1/login$": {"GET": _login},
-                create_service_path("consumers/[^/]+/records"):
+                create_consumer_service_path("consumers/[^/]+/records"):
                     {"GET": _get_records},
-                create_service_path("consumers"): {"POST": _create_consumer},
-                create_service_path("consumers/[^/]+/subscription"):
+                create_consumer_service_path("consumers"): {"POST": _create_consumer},
+                create_consumer_service_path("consumers/[^/]+/subscription"):
                     {"POST": _create_subscription},
-                create_service_path("consumers/[^/]+/offsets"):
+                create_consumer_service_path("consumers/[^/]+/offsets"):
                     {"POST": _commit_offsets},
                 "^/reset-records$": {"POST": _reset_records},
-                "^/record": {"POST": _create_record},
-                create_service_path("consumers/[^/]+"):
+                create_producer_service_path("produce"):
+                    {"POST": _produce_record},
+                create_consumer_service_path("consumers/[^/]+"):
                     {"DELETE": _delete_consumer}
             }
             SimpleHTTPRequestHandler.__init__(self, request, client_address,
@@ -198,6 +208,7 @@ class ConsumerService(object):
     def __init__(self, port=DEFAULT_PORT, config_file=None):
         self._active_consumers = {}
         self._active_records = list(DEFAULT_RECORDS)
+        self._offset = INITIAL_OFFSET + len(self._active_records)
         self._lock = threading.Lock()
         self._server = None
         self._server_thread = None
@@ -473,22 +484,23 @@ def _commit_offsets(body, consumer_service, **kwargs): # pylint: disable=unused-
 
 
 @_json_body
-def _create_record(body, consumer_service, **kwargs): # pylint: disable=unused-argument
+def _produce_record(body, consumer_service, **kwargs): # pylint: disable=unused-argument
     status_code = 200
     response = ""
     with consumer_service._lock:
-        if "message" in body and "payload" in body["message"]:
-            payload = body["message"]["payload"]
-            if isinstance(payload, dict):
-                body["message"]["payload"] = encode_payload(payload)
-            consumer_service._active_records.append(body)
-        else:
-            response = "No payload in record"
+        for record in body["records"]:
+            record["partition"] = PARTITION
+            record["offset"] = consumer_service._offset
+            consumer_service._offset += 1
+            consumer_service._active_records.append(record)
     return status_code, response
+
 
 def _reset_records(consumer_service, **kwargs): # pylint: disable=unused-argument
     with consumer_service._lock:
         consumer_service._active_records = list(DEFAULT_RECORDS)
+        consumer_service._offset = \
+            INITIAL_OFFSET + len(consumer_service._active_records)
     return 200, ""
 
 

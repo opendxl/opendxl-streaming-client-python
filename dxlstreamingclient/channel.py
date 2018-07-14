@@ -18,6 +18,9 @@ from .auth import login
 from .error import TemporaryError, PermanentError, StopError
 from ._compat import is_string
 
+_DEFAULT_CONSUMER_PATH_PREFIX = "/databus/consumer-service/v1"
+_DEFAULT_PRODUCER_PATH_PREFIX = "/databus/cloudproxy/v1"
+
 _RETRY_WAIT_EXPONENTIAL_MULTIPLIER = 1000
 _RETRY_WAIT_EXPONENTIAL_MAX = 10000
 
@@ -119,8 +122,10 @@ class Channel(object):
     _SESSION_TIMEOUT_CONFIG_SETTING = "session.timeout.ms"
 
     def __init__(self, base, auth,
-                 consumer_group,
-                 path_prefix="/databus/consumer-service/v1",
+                 consumer_group=None,
+                 path_prefix=None,
+                 consumer_path_prefix=_DEFAULT_CONSUMER_PATH_PREFIX,
+                 producer_path_prefix=_DEFAULT_PRODUCER_PATH_PREFIX,
                  offset="latest",  # earliest
                  request_timeout=None,
                  session_timeout=None,
@@ -180,10 +185,14 @@ class Channel(object):
             values, if specified, in the `extra_configs` parameter.
         """
         self._base = base
-        self._path_prefix = path_prefix
 
-        if not consumer_group:
-            raise PermanentError("Value must be specified for 'consumer_group'")
+        if path_prefix:
+            self._consumer_path_prefix = path_prefix
+            self._producer_path_prefix = path_prefix
+        else:
+            self._consumer_path_prefix = consumer_path_prefix
+            self._producer_path_prefix = producer_path_prefix
+
         self._consumer_group = consumer_group
 
         offset_values = ['latest', 'earliest', 'none']
@@ -297,9 +306,13 @@ class Channel(object):
             :attr:`retry_on_fail` is set to False.
         :raise PermanentError: if the channel has been destroyed.
         """
+        if not self._consumer_group:
+            raise PermanentError(
+                "No value specified for 'consumer_group' during channel init")
+
         self.reset()
 
-        url = furl(self._base).add(path=self._path_prefix).add(
+        url = furl(self._base).add(path=self._consumer_path_prefix).add(
             path="consumers").url
         payload = {
             "consumerGroup": self._consumer_group,
@@ -337,7 +350,7 @@ class Channel(object):
             # Auto-create consumer group if none present
             self.create()
 
-        url = furl(self._base).add(path=self._path_prefix).add(
+        url = furl(self._base).add(path=self._consumer_path_prefix).add(
             path="consumers/{}/subscription".format(
                 self._consumer_id)).url
         res = self._post_request(url, json={'topics': topics})
@@ -372,7 +385,7 @@ class Channel(object):
         if not self._subscriptions:
             raise PermanentError("Channel is not subscribed to any topic")
 
-        url = furl(self._base).add(path=self._path_prefix).add(
+        url = furl(self._base).add(path=self._consumer_path_prefix).add(
             path="consumers/{}/records".format(self._consumer_id)).url
 
         res = self._get_request(url)
@@ -418,7 +431,7 @@ class Channel(object):
         """
         if not self._records_commit_log:
             return
-        url = furl(self._base).add(path=self._path_prefix).add(
+        url = furl(self._base).add(path=self._consumer_path_prefix).add(
             path="consumers/{}/offsets".format(
                 self._consumer_id)).url
 
@@ -492,6 +505,10 @@ class Channel(object):
         :raise PermanentError: if the channel has been destroyed or a prior
             run is already in progress.
         """
+        if not self._consumer_group:
+            raise PermanentError(
+                "No value specified for 'consumer_group' during channel init")
+
         if not process_callback:
             raise PermanentError("process_callback not provided")
 
@@ -532,6 +549,18 @@ class Channel(object):
                 while self._running:
                     self._stopped_condition.wait()
 
+    def produce(self, payload):
+        url = furl(self._base).add(path=self._producer_path_prefix).add(
+            path="produce"
+        )
+
+        res = self._post_request(url, json=payload)
+
+        if res.status_code not in [200, 201, 202, 204]:
+            raise PermanentError(
+                "Unexpected permanent error {}: {}".format(
+                    res.status_code, res.text))
+
     def delete(self):
         """
         Deletes the consumer from the consumer group
@@ -540,7 +569,7 @@ class Channel(object):
         """
         if not self._consumer_id:
             return
-        url = furl(self._base).add(path=self._path_prefix).add(
+        url = furl(self._base).add(path=self._consumer_path_prefix).add(
             path="consumers/{}".format(
                 self._consumer_id)).url
 
