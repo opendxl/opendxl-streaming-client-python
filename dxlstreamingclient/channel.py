@@ -20,6 +20,7 @@ from ._compat import is_string
 
 _DEFAULT_CONSUMER_PATH_PREFIX = "/databus/consumer-service/v1"
 _DEFAULT_PRODUCER_PATH_PREFIX = "/databus/cloudproxy/v1"
+_PRODUCE_CONTENT_TYPE = "application/vnd.dxl.intel.records.v1+json"
 
 _RETRY_WAIT_EXPONENTIAL_MULTIPLIER = 1000
 _RETRY_WAIT_EXPONENTIAL_MAX = 10000
@@ -140,10 +141,17 @@ class Channel(object):
             for channel requests.
         :param str consumer_group: Consumer group to subscribe the channel
             consumer to.
+        :param str path_prefix: Path to append to streaming service requests.
         :param str consumer_path_prefix: Path to append to consumer-related
-            requests made to the streaming service.
+            requests made to the streaming service. Note that if the
+            `path_prefix` parameter is set to a non-empty value, the
+            `path_prefix` value will be appended to consumer-related requests
+            instead of the `consumer_path_prefix` value.
         :param str producer_path_prefix: Path to append to producer-related
-            requests made to the streaming service.
+            requests made to the streaming service. Note that if the
+            `path_prefix` parameter is set to a non-empty value, the
+            `path_prefix` value will be appended to producer-related requests
+            instead of the `producer_path_prefix` value.
         :param str offset: Offset for the next record to retrieve from the
             streaming service for the new :meth:`consume` call. Must be one
             of 'latest', 'earliest', or 'none'.
@@ -564,7 +572,7 @@ class Channel(object):
         url = furl(self._base).add(path=self._producer_path_prefix).add(
             path="produce").url
 
-        headers = {"Content-Type": "application/vnd.dxl.intel.records.v1+json"}
+        headers = {"Content-Type": _PRODUCE_CONTENT_TYPE}
 
         res = self._post_request(url, json=payload, headers=headers)
 

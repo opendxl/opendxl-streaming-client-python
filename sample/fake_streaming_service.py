@@ -34,6 +34,7 @@ MAX_SHUTDOWN_WAIT = 10
 
 CONSUMER_PATH_PREFIX = "/databus/consumer-service/v1"
 PRODUCER_PATH_PREFIX = "/databus/cloudproxy/v1"
+PRODUCE_CONTENT_TYPE = "application/vnd.dxl.intel.records.v1+json"
 
 AUTH_USER = "me"
 AUTH_PASSWORD = "secret"
@@ -525,7 +526,7 @@ def _commit_offsets(body, consumer_service, **kwargs): # pylint: disable=unused-
 def _produce_record(body, consumer_service, content_type, **kwargs): # pylint: disable=unused-argument
     status_code = 200
     response = ""
-    if content_type == "application/vnd.dxl.intel.records.v1+json":
+    if content_type == PRODUCE_CONTENT_TYPE:
         with consumer_service._lock:
             for record in body["records"]:
                 record["partition"] = PARTITION
