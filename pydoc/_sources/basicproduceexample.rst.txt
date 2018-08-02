@@ -12,7 +12,7 @@ Prerequisites
 Setup
 *****
 
-Modify the example to include the appropriate settings for the consumer
+Modify the example to include the appropriate settings for the streaming
 service channel:
 
     .. code-block:: python
