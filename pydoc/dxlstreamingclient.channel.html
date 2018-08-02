@@ -49,7 +49,7 @@
 service.</p>
 <dl class="class">
 <dt id="dxlstreamingclient.channel.Channel">
-<em class="property">class </em><code class="descclassname">dxlstreamingclient.channel.</code><code class="descname">Channel</code><span class="sig-paren">(</span><em>base</em>, <em>auth</em>, <em>consumer_group</em>, <em>path_prefix='/databus/consumer-service/v1'</em>, <em>offset='latest'</em>, <em>request_timeout=None</em>, <em>session_timeout=None</em>, <em>retry_on_fail=True</em>, <em>verify_cert_bundle=''</em>, <em>extra_configs=None</em><span class="sig-paren">)</span><a class="headerlink" href="#dxlstreamingclient.channel.Channel" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">dxlstreamingclient.channel.</code><code class="descname">Channel</code><span class="sig-paren">(</span><em>base</em>, <em>auth</em>, <em>consumer_group=None</em>, <em>path_prefix=None</em>, <em>consumer_path_prefix='/databus/consumer-service/v1'</em>, <em>producer_path_prefix='/databus/cloudproxy/v1'</em>, <em>offset='latest'</em>, <em>request_timeout=None</em>, <em>session_timeout=None</em>, <em>retry_on_fail=True</em>, <em>verify_cert_bundle=''</em>, <em>extra_configs=None</em><span class="sig-paren">)</span><a class="headerlink" href="#dxlstreamingclient.channel.Channel" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>The <a class="reference internal" href="#dxlstreamingclient.channel.Channel" title="dxlstreamingclient.channel.Channel"><code class="xref py py-class docutils literal notranslate"><span class="pre">Channel</span></code></a> class is responsible for all communication with the
 streaming service.</p>
@@ -80,6 +80,16 @@ for channel requests.</li>
 <li><strong>consumer_group</strong> (<em>str</em>) -- Consumer group to subscribe the channel
 consumer to.</li>
 <li><strong>path_prefix</strong> (<em>str</em>) -- Path to append to streaming service requests.</li>
+<li><strong>consumer_path_prefix</strong> (<em>str</em>) -- Path to append to consumer-related
+requests made to the streaming service. Note that if the
+<cite>path_prefix</cite> parameter is set to a non-empty value, the
+<cite>path_prefix</cite> value will be appended to consumer-related requests
+instead of the <cite>consumer_path_prefix</cite> value.</li>
+<li><strong>producer_path_prefix</strong> (<em>str</em>) -- Path to append to producer-related
+requests made to the streaming service. Note that if the
+<cite>path_prefix</cite> parameter is set to a non-empty value, the
+<cite>path_prefix</cite> value will be appended to producer-related requests
+instead of the <cite>producer_path_prefix</cite> value.</li>
 <li><strong>offset</strong> (<em>str</em>) -- Offset for the next record to retrieve from the
 streaming service for the new <a class="reference internal" href="#dxlstreamingclient.channel.Channel.consume" title="dxlstreamingclient.channel.Channel.consume"><code class="xref py py-meth docutils literal notranslate"><span class="pre">consume()</span></code></a> call. Must be one
 of 'latest', 'earliest', or 'none'.</li>
@@ -240,6 +250,24 @@ method is invoked).</p>
 <tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><a class="reference internal" href="dxlstreamingclient.error.html#dxlstreamingclient.error.TemporaryError" title="dxlstreamingclient.error.TemporaryError"><strong>TemporaryError</strong></a> -- if a consumer has previously been created for
 the channel but an attempt to delete the consumer from the
 channel fails.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="dxlstreamingclient.channel.Channel.produce">
+<code class="descname">produce</code><span class="sig-paren">(</span><em>payload</em><span class="sig-paren">)</span><a class="headerlink" href="#dxlstreamingclient.channel.Channel.produce" title="Permalink to this definition">¶</a></dt>
+<dd><p>Produces records to the channel.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>payload</strong> -- Payload containing the records to be posted to the
+channel.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><a class="reference internal" href="dxlstreamingclient.error.html#dxlstreamingclient.error.PermanentError" title="dxlstreamingclient.error.PermanentError"><strong>PermanentError</strong></a> -- if an unsuccessful response is received from
+the streaming service.</td>
 </tr>
 </tbody>
 </table>

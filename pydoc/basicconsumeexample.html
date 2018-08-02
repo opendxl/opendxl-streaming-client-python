@@ -15,7 +15,7 @@
     <script type="text/javascript" src="_static/doctools.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="dxlstreamingclient package" href="dxlstreamingclient.html" />
+    <link rel="next" title="Basic Produce Example" href="basicproduceexample.html" />
     <link rel="prev" title="Library Installation" href="installation.html" /> 
   </head><body>
     <div class="related" role="navigation" aria-label="related navigation">
@@ -28,7 +28,7 @@
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="dxlstreamingclient.html" title="dxlstreamingclient package"
+          <a href="basicproduceexample.html" title="Basic Produce Example"
              accesskey="N">next</a> |</li>
         <li class="right" >
           <a href="installation.html" title="Library Installation"
@@ -86,8 +86,8 @@ a command window:</p>
 </div></blockquote>
 <p>Messages like the following should appear in the command window:</p>
 <blockquote>
-<div><div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>INFO:__main__:Starting service
-INFO:__main__:Started service on http://mycaseserver:50080
+<div><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">INFO</span><span class="p">:</span><span class="n">__main__</span><span class="p">:</span><span class="n">Starting</span> <span class="n">service</span>
+<span class="n">INFO</span><span class="p">:</span><span class="n">__main__</span><span class="p">:</span><span class="n">Started</span> <span class="n">service</span> <span class="n">on</span> <span class="n">http</span><span class="p">:</span><span class="o">//</span><span class="n">mycaseserver</span><span class="p">:</span><span class="mi">50080</span>
 </pre></div>
 </div>
 </div></blockquote>
@@ -191,7 +191,8 @@ a line similar to the following:</p>
 </pre></div>
 </div>
 </div></blockquote>
-<p>The first step is to create a channel to the streaming service. The channel
+<p>The first step is to create a <a class="reference internal" href="dxlstreamingclient.channel.html#dxlstreamingclient.channel.Channel" title="dxlstreamingclient.channel.Channel"><code class="xref py py-class docutils literal notranslate"><span class="pre">dxlstreamingclient.channel.Channel</span></code></a>
+instance, which establishes a channel to the streaming service. The channel
 includes the URL to the streaming service, <code class="docutils literal notranslate"><span class="pre">CHANNEL_URL</span></code>, and credentials
 that the client uses to authenticate itself to the service, <code class="docutils literal notranslate"><span class="pre">CHANNEL_USERNAME</span></code>
 and <code class="docutils literal notranslate"><span class="pre">CHANNEL_PASSWORD</span></code>.</p>
@@ -202,14 +203,15 @@ payloads parameter and returns <code class="docutils literal notranslate"><span 
 continue consuming records. Note that if the <code class="docutils literal notranslate"><span class="pre">process_callback</span></code> function were
 to instead return <code class="docutils literal notranslate"><span class="pre">False</span></code>, the <code class="docutils literal notranslate"><span class="pre">run</span></code> method would stop polling the service
 for new records and would instead return.</p>
-<p>The final step is to call the <code class="docutils literal notranslate"><span class="pre">run</span></code> method. The <code class="docutils literal notranslate"><span class="pre">run</span></code> method establishes a
-consumer instance with the service, subscribes the consumer instance for events
-delivered to the <code class="docutils literal notranslate"><span class="pre">topics</span></code> included in the <code class="docutils literal notranslate"><span class="pre">CHANNEL_TOPIC_SUBSCRIPTIONS</span></code>
-variable, and continuously polls the streaming service for available records.
-The payloads from any records which are received from the streaming service are
-passed in a call to the <code class="docutils literal notranslate"><span class="pre">process_callback</span></code> function. Note that if no records
-are received from a poll attempt, an empty list of payloads is passed into the
-<code class="docutils literal notranslate"><span class="pre">process_callback</span></code> function.</p>
+<p>The final step is to call the <a class="reference internal" href="dxlstreamingclient.channel.html#dxlstreamingclient.channel.Channel.run" title="dxlstreamingclient.channel.Channel.run"><code class="xref py py-meth docutils literal notranslate"><span class="pre">dxlstreamingclient.channel.Channel.run()</span></code></a>
+method. The <code class="docutils literal notranslate"><span class="pre">run</span></code> method establishes a consumer instance with the service,
+subscribes the consumer instance for events delivered to the <code class="docutils literal notranslate"><span class="pre">topics</span></code>
+included in the <code class="docutils literal notranslate"><span class="pre">CHANNEL_TOPIC_SUBSCRIPTIONS</span></code> variable, and continuously
+polls the streaming service for available records. The payloads from any
+records which are received from the streaming service are passed in a call to
+the <code class="docutils literal notranslate"><span class="pre">process_callback</span></code> function. Note that if no records are received from a
+poll attempt, an empty list of payloads is passed into the <code class="docutils literal notranslate"><span class="pre">process_callback</span></code>
+function.</p>
 </div>
 </div>
 
@@ -234,8 +236,8 @@ are received from a poll attempt, an empty list of payloads is passed into the
   <p class="topless"><a href="installation.html"
                         title="previous chapter">Library Installation</a></p>
   <h4>Next topic</h4>
-  <p class="topless"><a href="dxlstreamingclient.html"
-                        title="next chapter">dxlstreamingclient package</a></p>
+  <p class="topless"><a href="basicproduceexample.html"
+                        title="next chapter">Basic Produce Example</a></p>
   <div role="note" aria-label="source link">
     <h3>This Page</h3>
     <ul class="this-page-menu">
@@ -269,7 +271,7 @@ are received from a poll attempt, an empty list of payloads is passed into the
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="dxlstreamingclient.html" title="dxlstreamingclient package"
+          <a href="basicproduceexample.html" title="Basic Produce Example"
              >next</a> |</li>
         <li class="right" >
           <a href="installation.html" title="Library Installation"

@@ -46,7 +46,7 @@ a command window:
 
 Messages like the following should appear in the command window:
 
-    .. code-block:: shell
+    .. parsed-literal::
 
         INFO:__main__:Starting service
         INFO:__main__:Started service on http://mycaseserver:50080
@@ -152,7 +152,8 @@ The majority of the sample code is shown below:
                         topics=CHANNEL_TOPIC_SUBSCRIPTIONS)
 
 
-The first step is to create a channel to the streaming service. The channel
+The first step is to create a :class:`dxlstreamingclient.channel.Channel`
+instance, which establishes a channel to the streaming service. The channel
 includes the URL to the streaming service, ``CHANNEL_URL``, and credentials
 that the client uses to authenticate itself to the service, ``CHANNEL_USERNAME``
 and ``CHANNEL_PASSWORD``.
@@ -165,11 +166,12 @@ continue consuming records. Note that if the ``process_callback`` function were
 to instead return ``False``, the ``run`` method would stop polling the service
 for new records and would instead return.
 
-The final step is to call the ``run`` method. The ``run`` method establishes a
-consumer instance with the service, subscribes the consumer instance for events
-delivered to the ``topics`` included in the ``CHANNEL_TOPIC_SUBSCRIPTIONS``
-variable, and continuously polls the streaming service for available records.
-The payloads from any records which are received from the streaming service are
-passed in a call to the ``process_callback`` function. Note that if no records
-are received from a poll attempt, an empty list of payloads is passed into the
-``process_callback`` function.
+The final step is to call the :meth:`dxlstreamingclient.channel.Channel.run`
+method. The ``run`` method establishes a consumer instance with the service,
+subscribes the consumer instance for events delivered to the ``topics``
+included in the ``CHANNEL_TOPIC_SUBSCRIPTIONS`` variable, and continuously
+polls the streaming service for available records. The payloads from any
+records which are received from the streaming service are passed in a call to
+the ``process_callback`` function. Note that if no records are received from a
+poll attempt, an empty list of payloads is passed into the ``process_callback``
+function.
