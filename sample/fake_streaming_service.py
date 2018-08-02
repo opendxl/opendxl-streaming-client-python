@@ -115,6 +115,43 @@ DEFAULT_RECORDS = [
         },
         "partition": PARTITION,
         "offset": INITIAL_OFFSET + 1
+    },
+    {
+        "routingData": {
+            "topic": "on_new_email_address",
+            "shardingKey": ""
+        },
+        "message": {
+            "headers": {},
+            "payload": encode_payload({
+                "context": {
+                    "bundleId": "bundle-0",
+                    "caseId": "case-id-abc123",
+                    "cost": 0,
+                    "operationId": "operation-id-abc123",
+                    "priority": 9,
+                    "tenantId": "tenant-id-abc123",
+                    "transactionId": "transaction-id-abc123"
+                },
+                "infoSeekerName": "on_new_email_address",
+                "input": [
+                    {
+                        "value": "user@server.com",
+                        "display_name": "user@server.com"
+                    }
+                ],
+                "queryURL": "https://mycaseserver.com/cases/abc123/graph-query",
+                "resultsPublishingChannel": {
+                    "settings": {
+                        "topic": "topic-abc123"
+                    },
+                    "type": "kafka"
+                },
+                "settings": {}
+            })
+        },
+        "partition": PARTITION,
+        "offset": INITIAL_OFFSET + 2
     }
 ]
 
@@ -347,6 +384,7 @@ def _json_body(f):
     def decorated(handler, *args, **kwargs):
         kwargs['body'] = json.loads(
             handler.rfile.read(int(handler.headers['Content-Length'])).decode())
+        kwargs['content_type'] = handler.headers.get('Content-Type')
         kwargs['handler'] = handler
         return f(*args, **kwargs)
     return decorated
@@ -484,15 +522,19 @@ def _commit_offsets(body, consumer_service, **kwargs): # pylint: disable=unused-
 
 
 @_json_body
-def _produce_record(body, consumer_service, **kwargs): # pylint: disable=unused-argument
+def _produce_record(body, consumer_service, content_type, **kwargs): # pylint: disable=unused-argument
     status_code = 200
     response = ""
-    with consumer_service._lock:
-        for record in body["records"]:
-            record["partition"] = PARTITION
-            record["offset"] = consumer_service._offset
-            consumer_service._offset += 1
-            consumer_service._active_records.append(record)
+    if content_type == "application/vnd.dxl.intel.records.v1+json":
+        with consumer_service._lock:
+            for record in body["records"]:
+                record["partition"] = PARTITION
+                record["offset"] = consumer_service._offset
+                consumer_service._offset += 1
+                consumer_service._active_records.append(record)
+    else:
+        status_code = 415
+        response = "Unsupported media type: {}".format(content_type)
     return status_code, response
 
 

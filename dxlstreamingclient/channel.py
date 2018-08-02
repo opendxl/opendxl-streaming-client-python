@@ -554,7 +554,9 @@ class Channel(object):
             path="produce"
         )
 
-        res = self._post_request(url, json=payload)
+        headers = {'Content-Type': 'application/vnd.dxl.intel.records.v1+json'}
+
+        res = self._post_request(url, json=payload, headers=headers)
 
         if res.status_code not in [200, 201, 202, 204]:
             raise PermanentError(

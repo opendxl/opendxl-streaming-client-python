@@ -30,12 +30,17 @@ class Test(unittest.TestCase):
                          consumer_group=fake_streaming_service.CONSUMER_GROUP) \
                     as channel:
                 channel.create()
-                channel.subscribe("case-mgmt-events")
+                topic = "case-mgmt-events"
+                channel.subscribe(topic)
 
-                expected_records = \
-                    [json.loads(base64.b64decode(
-                        record['message']['payload']).decode())
-                     for record in fake_streaming_service.DEFAULT_RECORDS]
+                expected_records = []
+                for record in fake_streaming_service.DEFAULT_RECORDS:
+                    if record['routingData']['topic'] == topic:
+                        expected_records.append(
+                            json.loads(base64.b64decode(
+                                record['message']['payload']).decode())
+                        )
+
                 records_consumed = channel.consume()
                 self.assertEqual(expected_records, records_consumed)
 

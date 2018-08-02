@@ -22,7 +22,9 @@ CHANNEL_URL = "http://127.0.0.1:50080"
 CHANNEL_USERNAME = "me"
 CHANNEL_PASSWORD = "secret"
 CHANNEL_CONSUMER_GROUP = "sample_consumer_group"
-CHANNEL_TOPIC_SUBSCRIPTIONS = ["case-mgmt-events", "my-topic"]
+CHANNEL_TOPIC_SUBSCRIPTIONS = ["case-mgmt-events",
+                               "my-topic",
+                               "topic-abc123"]
 # Path to a CA bundle file containing certificates of trusted CAs. The CA
 # bundle is used to validate that the certificate of the server being connected
 # to was signed by a valid authority. If set to an empty string, the server
