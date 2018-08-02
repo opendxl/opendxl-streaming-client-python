@@ -43,7 +43,7 @@ channel_payload = {
             "message": {
                 "headers": {},
                 "payload": base64.b64encode(
-                    json.dumps(message_payload).encode())
+                    json.dumps(message_payload).encode()).decode()
             }
         }
     ]

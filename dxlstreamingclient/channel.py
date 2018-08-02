@@ -140,7 +140,10 @@ class Channel(object):
             for channel requests.
         :param str consumer_group: Consumer group to subscribe the channel
             consumer to.
-        :param str path_prefix: Path to append to streaming service requests.
+        :param str consumer_path_prefix: Path to append to consumer-related
+            requests made to the streaming service.
+        :param str producer_path_prefix: Path to append to producer-related
+            requests made to the streaming service.
         :param str offset: Offset for the next record to retrieve from the
             streaming service for the new :meth:`consume` call. Must be one
             of 'latest', 'earliest', or 'none'.
@@ -550,11 +553,18 @@ class Channel(object):
                     self._stopped_condition.wait()
 
     def produce(self, payload):
-        url = furl(self._base).add(path=self._producer_path_prefix).add(
-            path="produce"
-        )
+        """
+        Produces records to the channel.
 
-        headers = {'Content-Type': 'application/vnd.dxl.intel.records.v1+json'}
+        :param payload: Payload containing the records to be posted to the
+            channel.
+        :raise PermanentError: if an unsuccessful response is received from
+            the streaming service.
+        """
+        url = furl(self._base).add(path=self._producer_path_prefix).add(
+            path="produce").url
+
+        headers = {"Content-Type": "application/vnd.dxl.intel.records.v1+json"}
 
         res = self._post_request(url, json=payload, headers=headers)
 

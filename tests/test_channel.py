@@ -16,7 +16,7 @@ def create_record(topic, payload, partition, offset):
             "topic": topic
         },
         "message": {
-            "payload": base64.b64encode(json.dumps(payload).encode())
+            "payload": base64.b64encode(json.dumps(payload).encode()).decode()
         },
         "partition": partition,
         "offset": offset
@@ -162,6 +162,10 @@ class Test(unittest.TestCase):
             commit_error_mock.status_code = 500
             commit_mock = MagicMock()
             commit_mock.status_code = 204
+
+            produce_mock = MagicMock()
+            produce_mock.status_code = 204
+
             delete_mock = MagicMock()
             delete_mock.status_code = 204
             delete_404_mock = MagicMock()
@@ -173,7 +177,9 @@ class Test(unittest.TestCase):
                 create_mock, subscr_mock,
                 consum_mock, commit_consumer_error_mock,
                 commit_error_mock, commit_mock,
-                delete_500_mock, delete_404_mock, delete_mock]
+                produce_mock,
+                delete_500_mock, delete_404_mock, delete_mock
+            ]
 
             channel = Channel(self.url,
                               auth=auth,
@@ -228,27 +234,56 @@ class Test(unittest.TestCase):
 
             channel.commit()
 
-        with self.assertRaises(TemporaryError):
-            channel.delete()  # trigger 500
+            message_payload = {"detail": "Hello from OpenDXL"}
+
+            produce_payload = {
+                "records": [
+                    {
+                        "routingData": {
+                            "topic": "topic1",
+                            "shardingKey": ""
+                        },
+                        "message": {
+                            "headers": {},
+                            "payload": base64.b64encode(
+                                json.dumps(message_payload).encode()).decode()
+                        }
+                    }
+                ]
+            }
+
+            channel.produce(produce_payload)
+
+            session.return_value.request.assert_called_with(
+                "post",
+                "http://localhost/databus/cloudproxy/v1/produce",
+                json=produce_payload,
+                headers={
+                    "Content-Type": "application/vnd.dxl.intel.records.v1+json"
+                }
+            )
+
+            with self.assertRaises(TemporaryError):
+                channel.delete()  # trigger 500
+                session.return_value.request.assert_called_with(
+                    "delete",
+                    "http://localhost/databus/consumer-service/v1/consumers/1234")
+                session.return_value.request.reset_mock()
+
+            channel.delete()  # trigger silent 404
             session.return_value.request.assert_called_with(
                 "delete",
                 "http://localhost/databus/consumer-service/v1/consumers/1234")
             session.return_value.request.reset_mock()
 
-        channel.delete()  # trigger silent 404
-        session.return_value.request.assert_called_with(
-            "delete",
-            "http://localhost/databus/consumer-service/v1/consumers/1234")
-        session.return_value.request.reset_mock()
+            channel._consumer_id = "1234"  # resetting consumer
+            channel.delete()  # Proper deletion
+            session.return_value.request.assert_called_with(
+                "delete",
+                "http://localhost/databus/consumer-service/v1/consumers/1234")
+            session.return_value.request.reset_mock()
 
-        channel._consumer_id = "1234"  # resetting consumer
-        channel.delete()  # Proper deletion
-        session.return_value.request.assert_called_with(
-            "delete",
-            "http://localhost/databus/consumer-service/v1/consumers/1234")
-        session.return_value.request.reset_mock()
-
-        channel.delete()  # trigger early exit
+            channel.delete()  # trigger early exit
 
     def test_run(self):
         auth = ChannelAuth(self.url, self.username, self.password)
