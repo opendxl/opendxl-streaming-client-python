@@ -26,6 +26,7 @@ Basic
 	:maxdepth: 1
 
 	basicconsumeexample
+	basicproduceexample
 
 Python API
 ----------

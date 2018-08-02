@@ -29,10 +29,12 @@ CHANNEL_TOPIC = "my-topic"
 # certificate is not validated.
 VERIFY_CERTIFICATE_BUNDLE = ""
 
+# Create the message payload to be included in a record
 message_payload = {
     "message": "Hello from OpenDXL"
 }
 
+# Create the full payload with records to produce to the channel
 channel_payload = {
     "records": [
         {
@@ -42,6 +44,8 @@ channel_payload = {
             },
             "message": {
                 "headers": {},
+                # Convert the message payload from a dictionary to a
+                # base64-encoded string.
                 "payload": base64.b64encode(
                     json.dumps(message_payload).encode()).decode()
             }
@@ -56,6 +60,7 @@ with Channel(CHANNEL_URL,
                               CHANNEL_PASSWORD,
                               verify_cert_bundle=VERIFY_CERTIFICATE_BUNDLE),
              verify_cert_bundle=VERIFY_CERTIFICATE_BUNDLE) as channel:
+    # Produce the payload records to the channel
     channel.produce(channel_payload)
 
 print("Succeeded.")
