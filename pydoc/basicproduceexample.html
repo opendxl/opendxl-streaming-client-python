@@ -133,10 +133,12 @@ following:</p>
 <blockquote>
 <div><div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">CHANNEL_TOPIC</span> <span class="o">=</span> <span class="s2">&quot;my-topic&quot;</span>
 
+<span class="c1"># Create the message payload to be included in a record</span>
 <span class="n">message_payload</span> <span class="o">=</span> <span class="p">{</span>
     <span class="s2">&quot;message&quot;</span><span class="p">:</span> <span class="s2">&quot;Hello from OpenDXL&quot;</span>
 <span class="p">}</span>
 
+<span class="c1"># Create the full payload with records to produce to the channel</span>
 <span class="n">channel_payload</span> <span class="o">=</span> <span class="p">{</span>
     <span class="s2">&quot;records&quot;</span><span class="p">:</span> <span class="p">[</span>
         <span class="p">{</span>
@@ -146,6 +148,8 @@ following:</p>
             <span class="p">},</span>
             <span class="s2">&quot;message&quot;</span><span class="p">:</span> <span class="p">{</span>
                 <span class="s2">&quot;headers&quot;</span><span class="p">:</span> <span class="p">{},</span>
+                <span class="c1"># Convert the message payload from a dictionary to a</span>
+                <span class="c1"># base64-encoded string.</span>
                 <span class="s2">&quot;payload&quot;</span><span class="p">:</span> <span class="n">base64</span><span class="o">.</span><span class="n">b64encode</span><span class="p">(</span>
                     <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">message_payload</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">())</span><span class="o">.</span><span class="n">decode</span><span class="p">()</span>
             <span class="p">}</span>
@@ -160,15 +164,15 @@ following:</p>
                               <span class="n">CHANNEL_PASSWORD</span><span class="p">,</span>
                               <span class="n">verify_cert_bundle</span><span class="o">=</span><span class="n">VERIFY_CERTIFICATE_BUNDLE</span><span class="p">),</span>
              <span class="n">verify_cert_bundle</span><span class="o">=</span><span class="n">VERIFY_CERTIFICATE_BUNDLE</span><span class="p">)</span> <span class="k">as</span> <span class="n">channel</span><span class="p">:</span>
+    <span class="c1"># Produce the payload records to the channel</span>
     <span class="n">channel</span><span class="o">.</span><span class="n">produce</span><span class="p">(</span><span class="n">channel_payload</span><span class="p">)</span>
-
-<span class="k">print</span><span class="p">(</span><span class="s2">&quot;Succeeded.&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div></blockquote>
 <p>The first step is to create a payload dictionary which includes an array of
 records to be sent to the channel. The <cite>message.payload</cite> item in each record
-is encoded using the <code class="docutils literal notranslate"><span class="pre">base64</span></code> algorithm.</p>
+is flattened from a dictionary into a string and encoded using the <code class="docutils literal notranslate"><span class="pre">base64</span></code>
+algorithm.</p>
 <p>The next step is to create a <a class="reference internal" href="dxlstreamingclient.channel.html#dxlstreamingclient.channel.Channel" title="dxlstreamingclient.channel.Channel"><code class="xref py py-class docutils literal notranslate"><span class="pre">dxlstreamingclient.channel.Channel</span></code></a>
 instance, which establishes a channel to the streaming service. The channel
 parameters include the URL to the streaming service, <code class="docutils literal notranslate"><span class="pre">CHANNEL_URL</span></code>, and

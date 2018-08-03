@@ -95,10 +95,12 @@ The majority of the sample code is shown below:
 
         CHANNEL_TOPIC = "my-topic"
 
+        # Create the message payload to be included in a record
         message_payload = {
             "message": "Hello from OpenDXL"
         }
 
+        # Create the full payload with records to produce to the channel
         channel_payload = {
             "records": [
                 {
@@ -108,6 +110,8 @@ The majority of the sample code is shown below:
                     },
                     "message": {
                         "headers": {},
+                        # Convert the message payload from a dictionary to a
+                        # base64-encoded string.
                         "payload": base64.b64encode(
                             json.dumps(message_payload).encode()).decode()
                     }
@@ -122,14 +126,14 @@ The majority of the sample code is shown below:
                                       CHANNEL_PASSWORD,
                                       verify_cert_bundle=VERIFY_CERTIFICATE_BUNDLE),
                      verify_cert_bundle=VERIFY_CERTIFICATE_BUNDLE) as channel:
+            # Produce the payload records to the channel
             channel.produce(channel_payload)
-
-        print("Succeeded.")
 
 
 The first step is to create a payload dictionary which includes an array of
 records to be sent to the channel. The `message.payload` item in each record
-is encoded using the ``base64`` algorithm.
+is flattened from a dictionary into a string and encoded using the ``base64``
+algorithm.
 
 The next step is to create a :class:`dxlstreamingclient.channel.Channel`
 instance, which establishes a channel to the streaming service. The channel
