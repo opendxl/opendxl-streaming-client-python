@@ -129,6 +129,8 @@ The majority of the sample code is shown below:
             # Produce the payload records to the channel
             channel.produce(channel_payload)
 
+        print("Succeeded.")
+
 
 The first step is to create a payload dictionary which includes an array of
 records to be sent to the channel. The `message.payload` item in each record
