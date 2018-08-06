@@ -30,17 +30,46 @@ class Test(unittest.TestCase):
                          consumer_group=fake_streaming_service.CONSUMER_GROUP) \
                     as channel:
                 channel.create()
-                channel.subscribe("case-mgmt-events")
+                self.assertEqual(len(service._active_consumers), 1)
 
-                expected_records = \
-                    [json.loads(base64.b64decode(
-                        record['message']['payload']).decode())
-                     for record in fake_streaming_service.DEFAULT_RECORDS]
+                topic = "case-mgmt-events"
+                channel.subscribe(topic)
+
+                expected_records = []
+                for record in fake_streaming_service.DEFAULT_RECORDS:
+                    if record['routingData']['topic'] == topic:
+                        expected_records.append(
+                            json.loads(base64.b64decode(
+                                record['message']['payload']).decode())
+                        )
+
                 records_consumed = channel.consume()
                 self.assertEqual(expected_records, records_consumed)
 
                 channel.commit()
                 self.assertEqual([], channel.consume())
 
-                self.assertEqual(len(service._active_consumers), 1)
-            self.assertEqual(len(service._active_consumers), 0)
+                message_payload = {"detail": "Hello from OpenDXL"}
+
+                produce_payload = {
+                    "records": [
+                        {
+                            "routingData": {
+                                "topic": topic,
+                                "shardingKey": ""
+                            },
+                            "message": {
+                                "headers": {},
+                                "payload": base64.b64encode(
+                                    json.dumps(message_payload).encode()).decode()
+                            }
+                        }
+                    ]
+                }
+
+                channel.produce(produce_payload)
+                records_consumed = channel.consume()
+
+                expected_records = [message_payload]
+                self.assertEqual(expected_records, records_consumed)
+        self.assertEqual(len(service._active_consumers), 0)

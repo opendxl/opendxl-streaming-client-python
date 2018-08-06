@@ -132,7 +132,15 @@ disable=missing-docstring,
         dict-keys-not-iterating,
         dict-values-not-iterating,
         invalid-name,
-        protected-access
+        protected-access,
+        useless-object-inheritance,
+        wrong-import-position,
+        wildcard-import,
+        unused-wildcard-import,
+        import-error,
+        undefined-variable,
+        similarities
+
 
 # Enable the message, report, category or checker with the given id(s). You can
 # either give multiple identifier separated by comma (,) or put this option

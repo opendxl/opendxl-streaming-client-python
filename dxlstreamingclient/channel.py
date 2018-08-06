@@ -18,6 +18,10 @@ from .auth import login
 from .error import TemporaryError, PermanentError, StopError
 from ._compat import is_string
 
+_DEFAULT_CONSUMER_PATH_PREFIX = "/databus/consumer-service/v1"
+_DEFAULT_PRODUCER_PATH_PREFIX = "/databus/cloudproxy/v1"
+_PRODUCE_CONTENT_TYPE = "application/vnd.dxl.intel.records.v1+json"
+
 _RETRY_WAIT_EXPONENTIAL_MULTIPLIER = 1000
 _RETRY_WAIT_EXPONENTIAL_MAX = 10000
 
@@ -119,8 +123,10 @@ class Channel(object):
     _SESSION_TIMEOUT_CONFIG_SETTING = "session.timeout.ms"
 
     def __init__(self, base, auth,
-                 consumer_group,
-                 path_prefix="/databus/consumer-service/v1",
+                 consumer_group=None,
+                 path_prefix=None,
+                 consumer_path_prefix=_DEFAULT_CONSUMER_PATH_PREFIX,
+                 producer_path_prefix=_DEFAULT_PRODUCER_PATH_PREFIX,
                  offset="latest",  # earliest
                  request_timeout=None,
                  session_timeout=None,
@@ -136,6 +142,16 @@ class Channel(object):
         :param str consumer_group: Consumer group to subscribe the channel
             consumer to.
         :param str path_prefix: Path to append to streaming service requests.
+        :param str consumer_path_prefix: Path to append to consumer-related
+            requests made to the streaming service. Note that if the
+            `path_prefix` parameter is set to a non-empty value, the
+            `path_prefix` value will be appended to consumer-related requests
+            instead of the `consumer_path_prefix` value.
+        :param str producer_path_prefix: Path to append to producer-related
+            requests made to the streaming service. Note that if the
+            `path_prefix` parameter is set to a non-empty value, the
+            `path_prefix` value will be appended to producer-related requests
+            instead of the `producer_path_prefix` value.
         :param str offset: Offset for the next record to retrieve from the
             streaming service for the new :meth:`consume` call. Must be one
             of 'latest', 'earliest', or 'none'.
@@ -180,10 +196,14 @@ class Channel(object):
             values, if specified, in the `extra_configs` parameter.
         """
         self._base = base
-        self._path_prefix = path_prefix
 
-        if not consumer_group:
-            raise PermanentError("Value must be specified for 'consumer_group'")
+        if path_prefix:
+            self._consumer_path_prefix = path_prefix
+            self._producer_path_prefix = path_prefix
+        else:
+            self._consumer_path_prefix = consumer_path_prefix
+            self._producer_path_prefix = producer_path_prefix
+
         self._consumer_group = consumer_group
 
         offset_values = ['latest', 'earliest', 'none']
@@ -297,9 +317,13 @@ class Channel(object):
             :attr:`retry_on_fail` is set to False.
         :raise PermanentError: if the channel has been destroyed.
         """
+        if not self._consumer_group:
+            raise PermanentError(
+                "No value specified for 'consumer_group' during channel init")
+
         self.reset()
 
-        url = furl(self._base).add(path=self._path_prefix).add(
+        url = furl(self._base).add(path=self._consumer_path_prefix).add(
             path="consumers").url
         payload = {
             "consumerGroup": self._consumer_group,
@@ -337,7 +361,7 @@ class Channel(object):
             # Auto-create consumer group if none present
             self.create()
 
-        url = furl(self._base).add(path=self._path_prefix).add(
+        url = furl(self._base).add(path=self._consumer_path_prefix).add(
             path="consumers/{}/subscription".format(
                 self._consumer_id)).url
         res = self._post_request(url, json={'topics': topics})
@@ -372,7 +396,7 @@ class Channel(object):
         if not self._subscriptions:
             raise PermanentError("Channel is not subscribed to any topic")
 
-        url = furl(self._base).add(path=self._path_prefix).add(
+        url = furl(self._base).add(path=self._consumer_path_prefix).add(
             path="consumers/{}/records".format(self._consumer_id)).url
 
         res = self._get_request(url)
@@ -418,7 +442,7 @@ class Channel(object):
         """
         if not self._records_commit_log:
             return
-        url = furl(self._base).add(path=self._path_prefix).add(
+        url = furl(self._base).add(path=self._consumer_path_prefix).add(
             path="consumers/{}/offsets".format(
                 self._consumer_id)).url
 
@@ -492,6 +516,10 @@ class Channel(object):
         :raise PermanentError: if the channel has been destroyed or a prior
             run is already in progress.
         """
+        if not self._consumer_group:
+            raise PermanentError(
+                "No value specified for 'consumer_group' during channel init")
+
         if not process_callback:
             raise PermanentError("process_callback not provided")
 
@@ -532,6 +560,27 @@ class Channel(object):
                 while self._running:
                     self._stopped_condition.wait()
 
+    def produce(self, payload):
+        """
+        Produces records to the channel.
+
+        :param payload: Payload containing the records to be posted to the
+            channel.
+        :raise PermanentError: if an unsuccessful response is received from
+            the streaming service.
+        """
+        url = furl(self._base).add(path=self._producer_path_prefix).add(
+            path="produce").url
+
+        headers = {"Content-Type": _PRODUCE_CONTENT_TYPE}
+
+        res = self._post_request(url, json=payload, headers=headers)
+
+        if res.status_code not in [200, 201, 202, 204]:
+            raise PermanentError(
+                "Unexpected permanent error {}: {}".format(
+                    res.status_code, res.text))
+
     def delete(self):
         """
         Deletes the consumer from the consumer group
@@ -540,7 +589,7 @@ class Channel(object):
         """
         if not self._consumer_id:
             return
-        url = furl(self._base).add(path=self._path_prefix).add(
+        url = furl(self._base).add(path=self._consumer_path_prefix).add(
             path="consumers/{}".format(
                 self._consumer_id)).url
 

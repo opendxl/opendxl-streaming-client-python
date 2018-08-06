@@ -1,4 +1,6 @@
 from __future__ import absolute_import
+from __future__ import print_function
+import base64
 import json
 import os
 import sys
@@ -21,19 +23,36 @@ logger = logging.getLogger(__name__)
 CHANNEL_URL = "http://127.0.0.1:50080"
 CHANNEL_USERNAME = "me"
 CHANNEL_PASSWORD = "secret"
-CHANNEL_CONSUMER_GROUP = "sample_consumer_group"
-CHANNEL_TOPIC_SUBSCRIPTIONS = ["case-mgmt-events",
-                               "my-topic",
-                               "topic-abc123"]
+CHANNEL_TOPIC = "my-topic"
 # Path to a CA bundle file containing certificates of trusted CAs. The CA
 # bundle is used to validate that the certificate of the server being connected
 # to was signed by a valid authority. If set to an empty string, the server
 # certificate is not validated.
 VERIFY_CERTIFICATE_BUNDLE = ""
 
-# This constant controls the frequency (in seconds) at which the channel 'run'
-# call below polls the streaming service for new records.
-WAIT_BETWEEN_QUERIES = 5
+# Create the message payload to be included in a record
+message_payload = {
+    "message": "Hello from OpenDXL"
+}
+
+# Create the full payload with records to produce to the channel
+channel_payload = {
+    "records": [
+        {
+            "routingData": {
+                "topic": CHANNEL_TOPIC,
+                "shardingKey": ""
+            },
+            "message": {
+                "headers": {},
+                # Convert the message payload from a dictionary to a
+                # base64-encoded string.
+                "payload": base64.b64encode(
+                    json.dumps(message_payload).encode()).decode()
+            }
+        }
+    ]
+}
 
 # Create a new channel object
 with Channel(CHANNEL_URL,
@@ -41,21 +60,8 @@ with Channel(CHANNEL_URL,
                               CHANNEL_USERNAME,
                               CHANNEL_PASSWORD,
                               verify_cert_bundle=VERIFY_CERTIFICATE_BUNDLE),
-             consumer_group=CHANNEL_CONSUMER_GROUP,
              verify_cert_bundle=VERIFY_CERTIFICATE_BUNDLE) as channel:
+    # Produce the payload records to the channel
+    channel.produce(channel_payload)
 
-    # Create a function which will be called back upon by the 'run' method (see
-    # below) when records are received from the channel.
-    def process_callback(payloads):
-        # Print the payloads which were received. 'payloads' is a list of
-        # dictionary objects extracted from the records received from the
-        # channel.
-        logger.info("Received payloads: \n%s",
-                    json.dumps(payloads, indent=4, sort_keys=True))
-        # Return 'True' in order for the 'run' call to continue attempting to
-        # consume records.
-        return True
-
-    # Consume records indefinitely
-    channel.run(process_callback, wait_between_queries=WAIT_BETWEEN_QUERIES,
-                topics=CHANNEL_TOPIC_SUBSCRIPTIONS)
+print("Succeeded.")

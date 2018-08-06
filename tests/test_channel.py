@@ -6,7 +6,7 @@ import threading
 import time
 from mock import call, patch, MagicMock
 from dxlstreamingclient.channel import \
-    (ConsumerError, Channel, ChannelAuth)
+    (ConsumerError, Channel, ChannelAuth, _PRODUCE_CONTENT_TYPE)
 from dxlstreamingclient.error import TemporaryError
 
 
@@ -16,7 +16,7 @@ def create_record(topic, payload, partition, offset):
             "topic": topic
         },
         "message": {
-            "payload": base64.b64encode(json.dumps(payload).encode())
+            "payload": base64.b64encode(json.dumps(payload).encode()).decode()
         },
         "partition": partition,
         "offset": offset
@@ -127,13 +127,13 @@ class Test(unittest.TestCase):
             "timestamp": "",
             "transaction-id": "",
             "case":
-            {
-                "id": "c00547df-6d74-4833-95ad-3a377c7274a6",
-                "name": "A great case full of malware",
-                "url": "https://mycaseserver.com/#/cases"
-                       "/4e8e23f4-9fe9-4215-92c9-12c9672be9f1",
-                "priority": "Low"
-            }
+                {
+                    "id": "c00547df-6d74-4833-95ad-3a377c7274a6",
+                    "name": "A great case full of malware",
+                    "url": "https://mycaseserver.com/#/cases"
+                           "/4e8e23f4-9fe9-4215-92c9-12c9672be9f1",
+                    "priority": "Low"
+                }
         }
 
         with patch("requests.Session") as session:
@@ -162,6 +162,10 @@ class Test(unittest.TestCase):
             commit_error_mock.status_code = 500
             commit_mock = MagicMock()
             commit_mock.status_code = 204
+
+            produce_mock = MagicMock()
+            produce_mock.status_code = 204
+
             delete_mock = MagicMock()
             delete_mock.status_code = 204
             delete_404_mock = MagicMock()
@@ -173,7 +177,9 @@ class Test(unittest.TestCase):
                 create_mock, subscr_mock,
                 consum_mock, commit_consumer_error_mock,
                 commit_error_mock, commit_mock,
-                delete_500_mock, delete_404_mock, delete_mock]
+                produce_mock,
+                delete_500_mock, delete_404_mock, delete_mock
+            ]
 
             channel = Channel(self.url,
                               auth=auth,
@@ -228,27 +234,133 @@ class Test(unittest.TestCase):
 
             channel.commit()
 
-        with self.assertRaises(TemporaryError):
-            channel.delete()  # trigger 500
+            message_payload = {"detail": "Hello from OpenDXL"}
+
+            produce_payload = {
+                "records": [
+                    {
+                        "routingData": {
+                            "topic": "topic1",
+                            "shardingKey": ""
+                        },
+                        "message": {
+                            "headers": {},
+                            "payload": base64.b64encode(
+                                json.dumps(message_payload).encode()).decode()
+                        }
+                    }
+                ]
+            }
+
+            channel.produce(produce_payload)
+
+            session.return_value.request.assert_called_with(
+                "post",
+                "http://localhost/databus/cloudproxy/v1/produce",
+                json=produce_payload,
+                headers={
+                    "Content-Type": _PRODUCE_CONTENT_TYPE
+                }
+            )
+
+            with self.assertRaises(TemporaryError):
+                channel.delete()  # trigger 500
+                session.return_value.request.assert_called_with(
+                    "delete",
+                    "http://localhost/databus/consumer-service/v1/consumers/1234")
+                session.return_value.request.reset_mock()
+
+            channel.delete()  # trigger silent 404
             session.return_value.request.assert_called_with(
                 "delete",
                 "http://localhost/databus/consumer-service/v1/consumers/1234")
             session.return_value.request.reset_mock()
 
-        channel.delete()  # trigger silent 404
-        session.return_value.request.assert_called_with(
-            "delete",
-            "http://localhost/databus/consumer-service/v1/consumers/1234")
-        session.return_value.request.reset_mock()
+            channel._consumer_id = "1234"  # resetting consumer
+            channel.delete()  # Proper deletion
+            session.return_value.request.assert_called_with(
+                "delete",
+                "http://localhost/databus/consumer-service/v1/consumers/1234")
+            session.return_value.request.reset_mock()
 
-        channel._consumer_id = "1234"  # resetting consumer
-        channel.delete()  # Proper deletion
-        session.return_value.request.assert_called_with(
-            "delete",
-            "http://localhost/databus/consumer-service/v1/consumers/1234")
-        session.return_value.request.reset_mock()
+            channel.delete()  # trigger early exit
 
-        channel.delete()  # trigger early exit
+    def test_path_prefix(self):
+        auth = ChannelAuth(self.url, self.username, self.password)
+
+        with patch("requests.Session") as session:
+            session.return_value = MagicMock()  # self._session
+            session.return_value.request = MagicMock()
+
+            create_mock = MagicMock()
+            create_mock.status_code = 200
+            create_mock.json = MagicMock(
+                return_value={"consumerInstanceId": 1234})
+
+            produce_mock = MagicMock()
+            produce_mock.status_code = 204
+
+            session.return_value.request.side_effect = [
+                create_mock, produce_mock]
+
+            channel = Channel(self.url,
+                              auth=auth,
+                              consumer_group=self.consumer_group,
+                              path_prefix="/base-path",
+                              retry_on_fail=False)
+
+            channel.create()
+
+            session.return_value.request.assert_called_with(
+                "post",
+                "http://localhost/base-path/consumers",
+                json={"consumerGroup": self.consumer_group,
+                      "configs": {
+                          "auto.offset.reset": "latest",
+                          "enable.auto.commit": "false"
+                      }}
+            )
+
+            channel.produce({})
+
+            session.return_value.request.assert_called_with(
+                "post",
+                "http://localhost/base-path/produce",
+                json={},
+                headers={"Content-Type": _PRODUCE_CONTENT_TYPE}
+            )
+
+            session.return_value.request.reset_mock()
+            session.return_value.request.side_effect = [
+                create_mock, produce_mock]
+
+            channel = Channel(self.url,
+                              auth=auth,
+                              consumer_group=self.consumer_group,
+                              consumer_path_prefix="/custom-consumer-path",
+                              producer_path_prefix="/custom-producer-path",
+                              retry_on_fail=False)
+
+            channel.create()
+
+            session.return_value.request.assert_called_with(
+                "post",
+                "http://localhost/custom-consumer-path/consumers",
+                json={"consumerGroup": self.consumer_group,
+                      "configs": {
+                          "auto.offset.reset": "latest",
+                          "enable.auto.commit": "false"
+                      }}
+            )
+
+            channel.produce({})
+
+            session.return_value.request.assert_called_with(
+                "post",
+                "http://localhost/custom-producer-path/produce",
+                json={},
+                headers={"Content-Type": _PRODUCE_CONTENT_TYPE}
+            )
 
     def test_run(self):
         auth = ChannelAuth(self.url, self.username, self.password)
@@ -371,6 +483,7 @@ class Test(unittest.TestCase):
                               retry_on_fail=True)
 
             payloads_received = []
+
             def on_consume(payloads):
                 payloads_received.append(payloads)
                 # Return True (continue consuming) only if at least one
@@ -395,7 +508,8 @@ class Test(unittest.TestCase):
             session.return_value = MagicMock()  # self._session
             session.return_value.request = MagicMock()
 
-            def on_request(method, url, json=None): # pylint: disable=redefined-outer-name
+            def on_request(method, url,
+                           json=None):  # pylint: disable=redefined-outer-name
                 del method, json
                 response_json = {}
                 if url.endswith('/consumers'):
