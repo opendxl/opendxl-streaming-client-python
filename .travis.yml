@@ -8,6 +8,13 @@ python:
   - "3.5"
   - "3.6"
 
+# Use Python 3.7 on xenial with sudo since it's not available on trusty yet
+matrix:
+  include:
+    - python: 3.7
+      dist: xenial
+      sudo: true
+
 # command to install dependencies
 install:
   - pip install .[test]
