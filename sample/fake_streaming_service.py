@@ -522,6 +522,7 @@ def _commit_offsets(body, consumer_service, **kwargs): # pylint: disable=unused-
     return 204, ""
 
 
+@_token_auth
 @_json_body
 def _produce_record(body, consumer_service, content_type, **kwargs): # pylint: disable=unused-argument
     status_code = 200
