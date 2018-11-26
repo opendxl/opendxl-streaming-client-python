@@ -139,7 +139,8 @@ disable=missing-docstring,
         unused-wildcard-import,
         import-error,
         undefined-variable,
-        similarities
+        similarities,
+        literal-comparison
 
 
 # Enable the message, report, category or checker with the given id(s). You can
