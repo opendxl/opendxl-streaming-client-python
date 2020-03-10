@@ -1,7 +1,7 @@
 # OpenDXL Streaming Python Client Library
 [![Latest PyPI Version](https://img.shields.io/pypi/v/dxlstreamingclient.svg)](https://pypi.python.org/pypi/dxlstreamingclient)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-[![Build Status](https://travis-ci.org/opendxl/opendxl-streaming-client-python.png?branch=master)](https://travis-ci.org/opendxl/opendxl-streaming-client-python)
+[![Actions Status](https://github.com/opendxl/opendxl-streaming-client-python/workflows/Build/badge.svg)](https://github.com/opendxl/opendxl-streaming-client-python/actions)
 
 ## Overview
 
