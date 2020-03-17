@@ -63,7 +63,7 @@ class CiCommand(Command):
         self.run_command("lint")
         self.run_command("test")
 
-TEST_REQUIREMENTS = ["nose", "astroid<2.3.0", "pylint<=2.3.1"]
+TEST_REQUIREMENTS = ["nose", "mock", "astroid<2.3.0", "pylint<=2.3.1"]
 
 setup(
     # Package name:
