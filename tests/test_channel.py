@@ -362,6 +362,37 @@ class Test(unittest.TestCase):
                 headers={"Content-Type": _PRODUCE_CONTENT_TYPE}
             )
 
+    def test_produce_retry_on_fail(self):
+        auth = ChannelAuth(self.url, self.username, self.password)
+
+        with patch("requests.Session") as session:
+            session.return_value = MagicMock()  # self._session
+            session.return_value.request = MagicMock()
+
+            produce_401_mock = MagicMock()
+            produce_401_mock.status_code = 401
+
+            produce_200_mock = MagicMock()
+            produce_200_mock.status_code = 200
+
+            session.return_value.request.side_effect = [
+                produce_401_mock, produce_200_mock]
+
+            channel = Channel(self.url, auth=auth)
+
+            produce_payload = {"hereis": "somedata"}
+
+            channel.produce(produce_payload)
+
+            expected_produce_call = call(
+                "post",
+                "http://localhost/databus/cloudproxy/v1/produce",
+                json=produce_payload,
+                headers={"Content-Type": _PRODUCE_CONTENT_TYPE})
+
+            expected_calls = [expected_produce_call, expected_produce_call]
+            session.return_value.request.assert_has_calls(expected_calls)
+
     def test_run(self):
         auth = ChannelAuth(self.url, self.username, self.password)
 

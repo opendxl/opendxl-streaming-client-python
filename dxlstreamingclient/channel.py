@@ -26,19 +26,21 @@ _RETRY_WAIT_EXPONENTIAL_MULTIPLIER = 1000
 _RETRY_WAIT_EXPONENTIAL_MAX = 10000
 
 
-def _retry(f):
-    @wraps(f)
-    def retry_wrapper(*args, **kwargs):
-        channel = args[0]
-        if not channel._active:
-            raise PermanentError("Channel has been destroyed")
-        return Retrying(
-            wait_exponential_multiplier=_RETRY_WAIT_EXPONENTIAL_MULTIPLIER,
-            wait_exponential_max=_RETRY_WAIT_EXPONENTIAL_MAX,
-            retry_on_exception=channel._retry_if_not_consumer_error). \
-            call(f, *args, **kwargs)
-    return retry_wrapper
-
+def _retry(stop_max_attempt_number=None):
+    def decorator(func):
+        @wraps(func)
+        def decorated(*args, **kwargs):
+            channel = args[0]
+            if not channel._active:
+                raise PermanentError("Channel has been destroyed")
+            return Retrying(
+                stop_max_attempt_number=stop_max_attempt_number,
+                wait_exponential_multiplier=_RETRY_WAIT_EXPONENTIAL_MULTIPLIER,
+                wait_exponential_max=_RETRY_WAIT_EXPONENTIAL_MAX,
+                retry_on_exception=channel._retry_if_not_consumer_error). \
+                call(func, *args, **kwargs)
+        return decorated
+    return decorator
 
 class ConsumerError(TemporaryError):
     """
@@ -308,7 +310,7 @@ class Channel(object):
         self._subscriptions = []
         self._records_commit_log = []
 
-    @_retry
+    @_retry()
     def create(self):
         """
         Creates a new consumer on the consumer group
@@ -339,7 +341,7 @@ class Channel(object):
                 "Unexpected temporary error {}: {}".format(
                     res.status_code, res.text))
 
-    @_retry
+    @_retry()
     def subscribe(self, topics):
         """
         Subscribes the consumer to a list of topics
@@ -377,7 +379,7 @@ class Channel(object):
                 "Unexpected temporary error {}: {}".format(
                     res.status_code, res.text))
 
-    @_retry
+    @_retry()
     def consume(self):
         """
         Consumes records from all the subscribed topics
@@ -428,7 +430,7 @@ class Channel(object):
                 "Unexpected temporary error {}: {}".format(
                     res.status_code, res.text))
 
-    @_retry
+    @_retry()
     def commit(self):
         """
         Commits the record offsets to the channel
@@ -560,6 +562,7 @@ class Channel(object):
                 while self._running:
                     self._stopped_condition.wait()
 
+    @_retry(stop_max_attempt_number=2)
     def produce(self, payload):
         """
         Produces records to the channel.
