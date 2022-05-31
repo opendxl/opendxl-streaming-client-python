@@ -23,7 +23,7 @@ class PermanentAuthenticationError(PermanentError):
     """
     pass
 
-def token(url,clinetid,clientsecret,path_fragment="/iam/v1.4/token",verify_cert_bundle="",scope="",grand_type="",audience=""):
+def token(url,clinetid,clientsecret,path_fragment="/iam/v1.4/token",verify_cert_bundle="",scope="",grant_type="",audience=""):
     auth = (clinetid, clientsecret)
     try:
         with warnings.catch_warnings():
@@ -31,7 +31,7 @@ def token(url,clinetid,clientsecret,path_fragment="/iam/v1.4/token",verify_cert_
                 warnings.filterwarnings("ignore", "Unverified HTTPS request")
             body ={
                 'scope': scope,
-                'grant_type': grand_type,
+                'grant_type': grant_type,
                 'audience': audience
             }
             res = requests.post(furl(url).add(path=path_fragment).url,

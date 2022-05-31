@@ -92,7 +92,7 @@ class ClientCredentialsChannelAuth(requests.auth.AuthBase):
     """
     Authentication class for use with channel requests.
     """
-    def __init__(self, base, clientid, clientsecret, verify_cert_bundle="",scope="",grand_type="",audience=""):
+    def __init__(self, base, clientid, clientsecret, verify_cert_bundle="",scope="",grant_type="",audience=""):
         """
         Constructor parameters:
         :param str base: Base URL to forward authentication requests to.
@@ -110,7 +110,7 @@ class ClientCredentialsChannelAuth(requests.auth.AuthBase):
         self._token = None
         self._verify_cert_bundle = verify_cert_bundle
         self._scope = scope
-        self._grand_type = grand_type
+        self._grant_type = grant_type
         self._audience = audience
         super(ClientCredentialsChannelAuth, self).__init__()
     def reset(self):
@@ -125,7 +125,7 @@ class ClientCredentialsChannelAuth(requests.auth.AuthBase):
                                 self._clientsecret,
                                 verify_cert_bundle=self._verify_cert_bundle,
                                 scope=self._scope,
-                                grand_type=self._grand_type,
+                                grant_type=self._grant_type,
                                 audience=self._audience)
         r.headers['Authorization'] = "Bearer {}".format(self._token)
         return r

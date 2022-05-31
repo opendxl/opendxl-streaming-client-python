@@ -37,7 +37,7 @@ with Channel(CHANNEL_URL,
                               CHANNEL_CLIENT_SECRET,
                               verify_cert_bundle=VERIFY_CERTIFICATE_BUNDLE,
                               scope=CHANNEL_SCOPE,
-                              grand_type=CHANNEL_GRANT_TYPE,
+                              grant_type=CHANNEL_GRANT_TYPE,
                               audience=CHANNEL_AUDIENCE),
              consumer_group=CHANNEL_CONSUMER_GROUP,
              verify_cert_bundle=VERIFY_CERTIFICATE_BUNDLE
