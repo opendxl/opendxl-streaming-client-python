@@ -14,7 +14,7 @@ import warnings
 import requests
 from retrying import Retrying
 from furl import furl
-from .auth import login
+from .auth import login, token
 from .error import TemporaryError, PermanentError, StopError
 from ._compat import is_string
 
@@ -88,6 +88,47 @@ class ChannelAuth(requests.auth.AuthBase):
         return r
 
 
+class ClientCredentialsChannelAuth(requests.auth.AuthBase):
+    """
+    Authentication class for use with channel requests.
+    """
+    def __init__(self, base, clientid, clientsecret, verify_cert_bundle="",scope="",grant_type="",audience=""):
+        """
+        Constructor parameters:
+        :param str base: Base URL to forward authentication requests to.
+        :param str username: User name to supply for request authentication.
+        :param str password: Password to supply for request authentication.
+        :param str verify_cert_bundle: Path to a CA bundle file containing
+            certificates of trusted CAs. The CA bundle is used to validate that
+            the certificate of the authentication server being connected to was
+            signed by a valid authority. If set to an empty string, the server
+            certificate is not validated.
+        """
+        self._clientid = clientid
+        self._clientsecret = clientsecret
+        self._base = base
+        self._token = None
+        self._verify_cert_bundle = verify_cert_bundle
+        self._scope = scope
+        self._grant_type = grant_type
+        self._audience = audience
+        super(ClientCredentialsChannelAuth, self).__init__()
+    def reset(self):
+        """
+        Purge any credentials cached from a previous authentication.
+        """
+        self._token = None
+    def __call__(self, r):
+        # Implement my authentication
+        if not self._token:
+            self._token = token(self._base, self._clientid,
+                                self._clientsecret,
+                                verify_cert_bundle=self._verify_cert_bundle,
+                                scope=self._scope,
+                                grant_type=self._grant_type,
+                                audience=self._audience)
+        r.headers['Authorization'] = "Bearer {}".format(self._token)
+        return r
 class Channel(object):
     """
     The :class:`Channel` class is responsible for all communication with the

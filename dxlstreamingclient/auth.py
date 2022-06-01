@@ -23,6 +23,40 @@ class PermanentAuthenticationError(PermanentError):
     """
     pass
 
+def token(url,clinetid,clientsecret,path_fragment="/iam/v1.4/token",verify_cert_bundle="",scope="",grant_type="",audience=""):
+    auth = (clinetid, clientsecret)
+    try:
+        with warnings.catch_warnings():
+            if not verify_cert_bundle:
+                warnings.filterwarnings("ignore", "Unverified HTTPS request")
+            body ={
+                'scope': scope,
+                'grant_type': grant_type,
+                'audience': audience
+            }
+            res = requests.post(furl(url).add(path=path_fragment).url,
+                               auth=auth,data=body,
+                               verify=verify_cert_bundle)
+        if res.status_code == 200:
+            try:
+                token = res.json()['access_token']
+                return token
+            except Exception as exp:
+                raise PermanentAuthenticationError(str(exp))
+        elif res.status_code == 401 or res.status_code == 403:
+            raise PermanentAuthenticationError(
+                "Unauthorized {}: {}".format(res.status_code, res.text))
+        else:
+            raise TemporaryAuthenticationError(
+                "Unexpected status code {}: {}".format(
+                    res.status_code,
+                    res.text
+                )
+            )
+    except RequestException as exp:
+        raise TemporaryAuthenticationError(
+            "Unexpected error: {}".format(str(exp))
+        )
 
 def login(url, username, password, path_fragment="/identity/v1/login",
           verify_cert_bundle=""):
